@@ -1,0 +1,61 @@
+name: nv-agenten
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nv-agenten:latest
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      INTERNAL_AGENT_API_PORT: "3101"
+      PRODUCTION_APP_URL: https://${DOMAIN:-localhost}
+      DASHBOARD_URL: https://${DOMAIN:-localhost}/dashboard
+    expose:
+      - "3000"
+    volumes:
+      - agent_data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+      CADDY_PASSWORD_HASH: ${CADDY_PASSWORD_HASH:?CADDY_PASSWORD_HASH must be set}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+volumes:
+  agent_data:
+  caddy_data:
+  caddy_config:

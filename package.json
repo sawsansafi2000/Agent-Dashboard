@@ -1,0 +1,25 @@
+{
+  "name": "natur-vitale-agent-loop",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "agent": "tsx src/agentLoop.ts",
+    "build": "npm run typecheck && npm test && npm --prefix agent-dashboard run build",
+    "control": "tsx src/controlCli.ts",
+    "start": "node agent-dashboard/dist/server.js",
+    "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "verify:deployment": "node scripts/verify-deployment.mjs"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "openai": "^6.49.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/node": "^24.0.0",
+    "express": "^4.17.1",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0"
+  }
+}

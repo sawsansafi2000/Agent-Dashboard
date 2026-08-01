@@ -1,0 +1,10 @@
+.env
+.git
+**/node_modules
+**/dist
+data
+STOP.txt
+nv-agent-data.zip
+nv-agent-data-*.tar.gz
+naturvitale-internal-app
+kill-switch-project

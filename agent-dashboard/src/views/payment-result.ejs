@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zahlungsstatus | Natur Vitale</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/dashboard"><span class="brand-mark">NV</span><span>Natur Vitale <strong>Agent Operations</strong></span></a>
+        <a class="back-link" href="<%= project ? project.link : '/dashboard' %>">Zurück</a>
+    </header>
+    <main class="detail-page payment-result">
+        <section class="detail-section">
+            <p class="eyebrow"><%= paid ? 'Zahlung erfolgreich' : 'Zahlungsstatus' %></p>
+            <h1><%= paid ? 'Vielen Dank.' : 'Nicht abgeschlossen.' %></h1>
+            <p><%= message %></p>
+            <% if (amount) { %><p class="payment-amount"><%= amount %></p><% } %>
+            <a class="payment-return" href="<%= project ? project.link : '/dashboard' %>"><%= project ? 'Zum Projekt' : 'Zum Dashboard' %></a>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Natur Vitale Agent Operations</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/socket.io/socket.io.js" defer></script>
+    <script src="/js/dashboard.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/dashboard" aria-label="Natur Vitale Agent Operations">
+            <span class="brand-mark">NV</span>
+            <span>Natur Vitale <strong>Agent Operations</strong></span>
+        </a>
+        <nav class="mobile-nav" aria-label="Hauptnavigation"><a class="active" href="/dashboard">Status</a><a href="/dashboard/chat">Chat</a><a href="/dashboard/social">Social</a></nav>
+        <div class="connection"><span id="connection-dot" class="connection-dot"></span><span id="connection-label">Verbinde</span></div>
+    </header>
+
+    <main>
+        <div id="api-budget-banner" class="api-budget-banner" role="alert" hidden></div>
+        <section class="overview" aria-labelledby="page-title">
+            <div>
+                <p class="eyebrow">Autonomes Kontrollzentrum</p>
+                <h1 id="page-title">Was arbeitet. Was entsteht. Was als Nächstes zählt.</h1>
+                <p class="intro">Live-Zustand des lokalen Natur-Vitale-Agentensystems.</p>
+            </div>
+            <p class="timestamp">Letztes Signal <strong id="last-update">-</strong></p>
+        </section>
+
+        <section class="metrics" aria-label="Systemkennzahlen">
+            <article><span>Agenten</span><strong id="metric-agents">0</strong><small>überwacht</small></article>
+            <article><span>Projekte</span><strong id="metric-projects">0</strong><small>aktiv bewertet</small></article>
+            <article><span>Bestellungen</span><strong id="metric-orders">0</strong><small>angebunden</small></article>
+            <article><span>Umsatz</span><strong id="metric-revenue">0 EUR</strong><small>Live-Quellen</small></article>
+        </section>
+
+        <section class="workspace-grid">
+            <div class="main-column">
+                <div class="section-heading">
+                    <div><p class="eyebrow">Laufende Prozesse</p><h2>Agentenstatus</h2></div>
+                    <span id="system-state" class="state-badge">Startet</span>
+                </div>
+                <div id="agent-list" class="agent-list" aria-live="polite"></div>
+
+                <div class="section-heading projects-heading">
+                    <div><p class="eyebrow">Projektportfolio</p><h2>Validierung & Verkauf</h2></div>
+                    <span class="section-note">Verkaufswerte nur aus angebundenen Quellen</span>
+                </div>
+                <div id="project-list" class="project-list" aria-live="polite"></div>
+
+                <div class="section-heading ideas-heading">
+                    <div><p class="eyebrow">Innovationspipeline</p><h2>Business-Ideen</h2></div>
+                    <div class="filters" role="group" aria-label="Ideen filtern">
+                        <button class="filter active" data-filter="all" type="button">Alle</button>
+                        <button class="filter" data-filter="agent" type="button">Agent</button>
+                        <button class="filter" data-filter="manual" type="button">Manuell</button>
+                    </div>
+                </div>
+                <div id="idea-list" class="idea-list" aria-live="polite"></div>
+            </div>
+
+            <aside class="idea-form-panel">
+                <p class="eyebrow">Neuer Impuls</p>
+                <h2>Idee an den Agenten geben</h2>
+                <form id="idea-form">
+                    <label for="title">Titel</label>
+                    <input id="title" name="title" required maxlength="120">
+                    <label for="summary">Kurzbeschreibung</label>
+                    <textarea id="summary" name="summary" required rows="4"></textarea>
+                    <label for="targetMarkets">Zielmärkte</label>
+                    <input id="targetMarkets" name="targetMarkets" required placeholder="DACH, Benelux, Skandinavien">
+                    <label for="businessModel">Geschäftsmodell</label>
+                    <textarea id="businessModel" name="businessModel" required rows="3"></textarea>
+                    <button class="submit-button" type="submit">Impuls speichern <span aria-hidden="true">→</span></button>
+                    <p id="form-status" class="form-status" role="status"></p>
+                </form>
+            </aside>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zahlungsstatus | Natur Vitale Pilot Studio</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header class="topbar public-topbar"><a class="brand" href="/"><span class="brand-mark">NV</span><span>Natur Vitale <strong>Pilot Studio</strong></span></a></header>
+    <main class="detail-page payment-result">
+        <section class="detail-section">
+            <p class="eyebrow"><%= paid ? 'Zahlung erfolgreich' : 'Zahlungsstatus' %></p>
+            <h1><%= paid ? 'Deine Session ist gebucht.' : 'Zahlung nicht abgeschlossen.' %></h1>
+            <p><%= paid ? 'Wir melden uns per E-Mail zur Terminabstimmung.' : 'Es wurde keine bestaetigte Zahlung gefunden.' %></p>
+            <% if (amount) { %><p class="payment-amount"><%= amount %></p><% } %>
+            <a class="payment-return" href="<%= project ? `/offers/${project.slug}` : '/' %>"><%= project ? 'Zum Angebot' : 'Zur Uebersicht' %></a>
+        </section>
+    </main>
+</body>
+</html>

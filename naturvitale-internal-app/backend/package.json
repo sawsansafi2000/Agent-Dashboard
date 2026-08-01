@@ -1,0 +1,34 @@
+{
+  "name": "naturvitale-internal-app",
+  "version": "1.0.0",
+  "description": "Backend for the Naturvitale internal application.",
+  "main": "src/server.ts",
+  "scripts": {
+    "start": "ts-node src/server.ts",
+    "build": "tsc",
+    "migrate": "node src/db/migrations/001_init.sql",
+    "seed": "ts-node src/db/seeds/seed-admin.ts"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "bcrypt": "^5.0.1",
+    "sqlite3": "^5.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "socket.io": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.3.2",
+    "ts-node": "^10.0.0",
+    "nodemon": "^2.0.7",
+    "@types/express": "^4.17.11",
+    "@types/jsonwebtoken": "^8.5.0",
+    "@types/bcrypt": "^5.0.0",
+    "@types/socket.io": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "license": "MIT"
+}

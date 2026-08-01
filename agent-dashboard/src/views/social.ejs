@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Publisher | Natur Vitale</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/js/social.js" defer></script>
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/dashboard"><span class="brand-mark">NV</span><span>Natur Vitale <strong>Social Publisher</strong></span></a>
+        <nav class="mobile-nav" aria-label="Hauptnavigation"><a href="/dashboard">Status</a><a href="/dashboard/chat">Chat</a><a class="active" href="/dashboard/social">Social</a></nav>
+        <span id="social-connection" class="connection">Verbinde</span>
+    </header>
+    <main class="detail-page">
+        <section class="detail-hero">
+            <p class="eyebrow">Social-Media-Challenge</p>
+            <h1>Entwürfe prüfen und gezielt veröffentlichen.</h1>
+            <p class="intro">Entwürfe bleiben kontrollierbar; im aktivierten Autonomie-Modus übernimmt der Social-Loop Freigabe und Queue-Publishing.</p>
+        </section>
+        <section class="project-detail-grid">
+            <article class="detail-section">
+                <p class="eyebrow">Neuer Beitrag</p>
+                <h2>Entwurf anlegen</h2>
+                <form id="social-form">
+                    <label for="social-platform">Plattform</label>
+                    <select id="social-platform" required><option value="x">X</option><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="youtube">YouTube</option></select>
+                    <label for="social-kind">Format</label>
+                    <select id="social-kind" required><option value="post">Post</option><option value="story">Instagram Story</option></select>
+                    <label for="social-content">Inhalt</label>
+                    <textarea id="social-content" maxlength="5000" rows="7" required></textarea>
+                    <label for="social-media-url">Öffentliche HTTPS-Medien-URL</label>
+                    <input id="social-media-url" type="url" inputmode="url" placeholder="https://...">
+                    <label for="social-scheduled-at">Veröffentlichen ab</label>
+                    <input id="social-scheduled-at" type="datetime-local">
+                    <button class="submit-button" type="submit">Entwurf speichern</button>
+                    <p id="social-status" class="form-status" role="status"></p>
+                </form>
+            </article>
+            <section class="detail-section">
+                <p class="eyebrow">Freigabewarteschlange</p>
+                <h2>Beiträge</h2>
+                <div class="filters" aria-label="Social-Media-Zugänge">
+                    <a class="filter" href="/dashboard/social/oauth/instagram/start">Instagram verbinden</a>
+                    <a class="filter" href="/dashboard/social/oauth/tiktok/start">TikTok verbinden</a>
+                </div>
+                <div id="platform-status" class="filters" aria-label="Plattformstatus"></div>
+                <div id="social-publications" class="agent-list" aria-live="polite"></div>
+            </section>
+        </section>
+    </main>
+</body>
+</html>

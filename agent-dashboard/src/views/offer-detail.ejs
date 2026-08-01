@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= project.title %> | Natur Vitale Pilot Studio</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header class="topbar public-topbar">
+        <a class="brand" href="/"><span class="brand-mark">NV</span><span>Natur Vitale <strong>Pilot Studio</strong></span></a>
+        <a class="back-link" href="/">Alle Angebote</a>
+    </header>
+    <main class="public-page offer-detail-page">
+        <section class="offer-detail-copy">
+            <p class="eyebrow">45 Minuten · Online · 1:1</p>
+            <h1><%= project.title %></h1>
+            <p class="intro"><%= project.idea.summary %></p>
+            <div class="session-scope">
+                <h2>Das erarbeiten wir</h2>
+                <ul>
+                    <li>Ein fokussiertes Zielkundensegment und dessen dringendsten Bedarf</li>
+                    <li>Ein testbares Nutzenversprechen fuer den ersten Markttest</li>
+                    <li>Drei konkrete naechste Schritte fuer die Pilotvalidierung</li>
+                </ul>
+            </div>
+        </section>
+        <aside class="checkout-panel">
+            <p class="eyebrow">Pilot-Strategie-Session</p>
+            <p class="checkout-price"><strong><%= price %></strong><span>einmalig, inkl. USt. soweit anwendbar</span></p>
+            <p>Nach der Zahlung melden wir uns per E-Mail zur Terminabstimmung. Verkauft wird die Strategie-Session, nicht das beschriebene Produkt.</p>
+            <% if (paymentCancelled) { %><p class="payment-notice">Die Zahlung wurde abgebrochen. Es wurde nichts belastet.</p><% } %>
+            <% if (checkoutError) { %><p class="payment-notice payment-error"><%= checkoutError %></p><% } %>
+            <% if (stripeConfigured) { %>
+                <form method="post" action="/offers/<%= project.slug %>/checkout">
+                    <label class="checkout-consent"><input name="terms" type="checkbox" value="accepted" required><span>Ich bestelle eine 45-minuetige Online-Strategie-Session und habe den beschriebenen Leistungsumfang verstanden.</span></label>
+                    <button class="submit-button" type="submit"><span>Sicher mit Stripe buchen</span><span aria-hidden="true">→</span></button>
+                </form>
+            <% } else { %>
+                <p class="payment-notice payment-error">Die Online-Zahlung ist derzeit nicht verfuegbar.</p>
+            <% } %>
+        </aside>
+    </main>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pilot-Strategie | Natur Vitale</title>
+    <meta name="description" content="Buche eine fokussierte Pilot-Strategie-Session fuer nachhaltige Wellness- und Gesundheitskonzepte.">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header class="topbar public-topbar">
+        <a class="brand" href="/"><span class="brand-mark">NV</span><span>Natur Vitale <strong>Pilot Studio</strong></span></a>
+        <a class="back-link" href="#angebote">Angebote</a>
+    </header>
+    <main class="public-page">
+        <section class="public-hero">
+            <p class="eyebrow">Bezahlte Pilotvalidierung</p>
+            <h1>Aus einer Idee wird ein belastbarer Pilot.</h1>
+            <p class="intro">In 45 Minuten schaerfen wir Zielgruppe, Nutzenversprechen und den naechsten Markttest fuer ein ausgewaehltes Konzept.</p>
+            <a class="public-cta" href="#angebote">Session auswaehlen <span aria-hidden="true">↓</span></a>
+        </section>
+        <section id="angebote" class="offer-section">
+            <div class="section-heading"><div><p class="eyebrow">Aktuelle Konzepte</p><h2>Pilot-Strategie-Sessions</h2></div><p class="section-note">45 Minuten online · 49 EUR einmalig</p></div>
+            <div class="public-offer-list">
+                <% projects.forEach(project => { %>
+                    <article class="public-offer-card">
+                        <p class="eyebrow">Pilotvalidierung</p>
+                        <h3><a href="/offers/<%= project.slug %>"><%= project.title %></a></h3>
+                        <p><%= project.idea.summary %></p>
+                        <div class="offer-card-footer"><strong>49 EUR</strong><a href="/offers/<%= project.slug %>">Details <span aria-hidden="true">→</span></a></div>
+                    </article>
+                <% }) %>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

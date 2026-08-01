@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#17211b">
+    <title>Agenten-Chat | Natur Vitale</title>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/js/chat.js" defer></script>
+</head>
+<body class="chat-page">
+    <header class="topbar">
+        <a class="brand" href="/dashboard"><span class="brand-mark">NV</span><span>Natur Vitale <strong>Agent Operations</strong></span></a>
+        <nav class="mobile-nav" aria-label="Hauptnavigation"><a href="/dashboard">Status</a><a class="active" href="/dashboard/chat">Chat</a><a href="/dashboard/social">Social</a></nav>
+    </header>
+
+    <main class="chat-shell">
+        <section class="chat-workspace" aria-labelledby="chat-title">
+            <div id="api-budget-banner" class="api-budget-banner" role="alert" hidden></div>
+            <div class="chat-heading">
+                <div><p class="eyebrow">Direkter Arbeitskanal</p><h1 id="chat-title">Agenten-Chat</h1></div>
+                <span id="chat-connection" class="state-badge">Verbinde</span>
+            </div>
+            <div id="chat-messages" class="chat-messages" aria-live="polite" aria-busy="true"></div>
+            <form id="chat-form" class="chat-composer">
+                <label for="target-agent">Zielagent</label>
+                <select id="target-agent" name="targetAgent">
+                    <% targetAgents.forEach(agent => { %><option value="<%= agent.id %>"><%= agent.name %></option><% }) %>
+                </select>
+                <label for="chat-message">Auftrag</label>
+                <textarea id="chat-message" name="message" maxlength="4000" rows="4" required placeholder="Neue Aufgabe für die Social-Media-Challenge ..."></textarea>
+                <div class="composer-actions">
+                    <span id="chat-status" role="status"></span>
+                    <button class="submit-button chat-send" type="submit">Senden <span aria-hidden="true">→</span></button>
+                </div>
+            </form>
+        </section>
+
+        <aside class="quick-links" aria-labelledby="links-title">
+            <p class="eyebrow">Schnellzugriff</p>
+            <h2 id="links-title">Wichtige Links</h2>
+            <div class="quick-link-list">
+                <% links.forEach(link => { %>
+                    <a href="<%= link.url %>" target="_blank" rel="noopener noreferrer">
+                        <span><small><%= link.group %></small><strong><%= link.name %></strong></span><span aria-hidden="true">↗</span>
+                    </a>
+                <% }) %>
+            </div>
+            <div class="access-summary">
+                <small>Dashboard-Zugang</small>
+                <strong>Benutzer: <%= dashboardUsername %></strong>
+                <span>Passwort: sicher hinterlegt, nicht sichtbar</span>
+            </div>
+            <p class="security-note">Zugangsdaten und API-Schlüssel werden hier absichtlich nicht angezeigt.</p>
+        </aside>
+    </main>
+</body>
+</html>

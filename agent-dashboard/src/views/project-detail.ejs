@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= project.title %> | Natur Vitale</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/dashboard"><span class="brand-mark">NV</span><span>Natur Vitale <strong>Agent Operations</strong></span></a>
+        <a class="back-link" href="/dashboard">Dashboard</a>
+    </header>
+    <main class="detail-page">
+        <section class="detail-hero">
+            <p class="eyebrow"><%= project.stage %> · Score <%= project.score ?? '-' %>/100</p>
+            <h1><%= project.title %></h1>
+            <p class="intro"><%= project.idea.summary %></p>
+        </section>
+        <section class="detail-grid sales-facts">
+            <article class="fact-panel"><span>Fortschritt</span><strong><%= project.progress %>%</strong></article>
+            <article class="fact-panel"><span>Bestellungen</span><strong><%= project.orders %></strong></article>
+            <article class="fact-panel"><span>Umsatz</span><strong><%= project.revenue %> <%= project.currency %></strong><small>Quelle: <%= project.salesSource %></small></article>
+        </section>
+        <section class="project-detail-grid">
+            <article class="detail-section"><p class="eyebrow">Nächster Meilenstein</p><h2><%= project.nextMilestone %></h2><p><%= project.idea.feasibility?.technicalApproach %></p></article>
+            <article class="detail-section"><p class="eyebrow">Monetarisierung</p><h2>Preis & Erstkunde</h2><p><%= project.idea.salesPlan?.pricingModel %></p><p><%= project.idea.salesPlan?.firstCustomerProfile %></p></article>
+            <article class="detail-section"><p class="eyebrow">Vertrieb</p><h2>Kanäle</h2><ul><% project.idea.salesPlan?.channels.forEach(channel => { %><li><%= channel %></li><% }) %></ul></article>
+            <article class="detail-section"><p class="eyebrow">Offene Nachweise</p><h2>Vor Umsetzung erforderlich</h2><ul><% project.idea.feasibility?.missingRequirements.forEach(item => { %><li><%= item %></li><% }) %></ul></article>
+            <article class="detail-section payment-panel">
+                <p class="eyebrow">Stripe Checkout</p>
+                <h2>Projektzahlung</h2>
+                <% if (paymentCancelled) { %><p class="payment-notice">Die Zahlung wurde abgebrochen. Es wurde nichts belastet.</p><% } %>
+                <% if (stripeConfigured) { %>
+                    <form method="post" action="/dashboard/projects/<%= project.slug %>/checkout">
+                        <label for="amount">Betrag in EUR</label>
+                        <input id="amount" name="amount" type="number" min="1" max="10000" step="0.01" value="25.00" required>
+                        <button class="submit-button" type="submit"><span>Sicher mit Stripe zahlen</span><span>→</span></button>
+                    </form>
+                <% } else { %>
+                    <p class="payment-notice payment-error">Stripe ist noch nicht konfiguriert. In der Root-.env fehlt STRIPE_SECRET_KEY.</p>
+                <% } %>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

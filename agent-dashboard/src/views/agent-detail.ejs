@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= agent.name %> | Natur Vitale</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="/dashboard"><span class="brand-mark">NV</span><span>Natur Vitale <strong>Agent Operations</strong></span></a>
+        <a class="back-link" href="/dashboard">Dashboard</a>
+    </header>
+    <main class="detail-page">
+        <section class="detail-hero">
+            <p class="eyebrow"><%= agent.role %></p>
+            <h1><%= agent.name %></h1>
+            <p class="intro"><%= agent.description %></p>
+        </section>
+        <section class="detail-grid">
+            <article class="fact-panel"><span>Eingang</span><strong><%= agent.input %></strong></article>
+            <article class="fact-panel"><span>Ergebnis</span><strong><%= agent.output %></strong></article>
+            <article class="fact-panel"><span>Status</span><strong>Aktiv im gemeinsamen Loop</strong></article>
+        </section>
+        <section class="detail-section">
+            <div class="section-heading"><div><p class="eyebrow">Portfolio</p><h2>Zugeordnete Projekte</h2></div><span><%= projects.length %> Projekte</span></div>
+            <div class="project-list server-project-list">
+                <% projects.forEach(project => { %>
+                    <article class="project-card">
+                        <div class="project-head"><span class="stage"><%= project.stage %></span><strong><%= project.score ?? '-' %>/100</strong></div>
+                        <h3><a href="<%= project.link %>"><%= project.title %></a></h3>
+                        <p class="milestone"><%= project.nextMilestone %></p>
+                    </article>
+                <% }) %>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
