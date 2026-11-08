@@ -1,7 +1,56 @@
-{$DOMAIN:localhost} {
+{
+    order coraza_waf first
+}
+
+{$DOMAIN:naturvitale.tech}, www.{$DOMAIN:naturvitale.tech} {
     encode zstd gzip
 
-    reverse_proxy app:3000
+    coraza_waf {
+        load_owasp_crs
+        directives `
+            Include @coraza.conf-recommended
+            Include @crs-setup.conf.example
+            Include @owasp_crs/*.conf
+            SecRuleEngine On
+        `
+    }
+
+    @stripe_webhook path /api/stripe-webhook
+    handle @stripe_webhook {
+        reverse_proxy app:3000
+    }
+
+    handle /agenten-intern {
+        redir /agenten-intern/ 308
+    }
+
+    handle /agenten-intern/api/portal-errors {
+        basic_auth {
+            {$DASHBOARD_USERNAME} {$CADDY_PASSWORD_HASH}
+        }
+        rewrite * /internal/errors
+        reverse_proxy portal:3200 {
+            header_up X-Portal-Error-Token {$PORTAL_ERROR_TOKEN}
+        }
+    }
+
+    handle_path /agenten-intern/* {
+        basic_auth {
+            {$DASHBOARD_USERNAME} {$CADDY_PASSWORD_HASH}
+        }
+        reverse_proxy app:3000 {
+            header_up X-Dashboard-Proxy-Auth {$DASHBOARD_PROXY_TOKEN}
+            header_up X-Dashboard-Actor {http.auth.user.id}
+        }
+    }
+
+    handle /api/* {
+        reverse_proxy portal:3200
+    }
+
+    handle {
+        reverse_proxy portal:3200
+    }
 
     header {
         Strict-Transport-Security "max-age=31536000; includeSubDomains"
