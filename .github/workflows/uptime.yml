@@ -1,0 +1,38 @@
+name: Production uptime
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-portal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check public portal and health endpoint
+        env:
+          PORTAL_URL: https://naturvitale.tech
+        run: |
+          node --input-type=module -e '
+            const base = new URL(process.env.PORTAL_URL);
+            for (const path of ["/", "/health"]) {
+              const response = await fetch(new URL(path, base), {
+                signal: AbortSignal.timeout(10000),
+                redirect: "error",
+              });
+              if (!response.ok) {
+                throw new Error(`${path} returned HTTP ${response.status}`);
+              }
+              if (path === "/health") {
+                const health = await response.json();
+                if (health.status !== "ok") {
+                  throw new Error("Portal health response is not healthy");
+                }
+              }
+              console.log(`OK ${path}: HTTP ${response.status}`);
+            }
+          '
