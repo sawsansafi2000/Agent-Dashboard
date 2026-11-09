@@ -26,12 +26,23 @@ export interface RunDecision {
 }
 
 function initialState(): ControlState {
+    const localMode = process.env.AGENT_EXECUTION_MODE === 'local';
+    const autoStart = !localMode && process.env.AGENT_AUTOSTART === 'true';
+    const localAutoStart = localMode && process.env.AGENT_LOCAL_AUTOSTART === 'true';
+    const configuredBudget = Number.parseInt(process.env.AGENT_API_BUDGET_CENTS ?? '', 10);
+    if (autoStart && !process.env.OPENAI_API_KEY) {
+        throw new Error('AGENT_AUTOSTART erfordert OPENAI_API_KEY.');
+    }
+    if (autoStart && (!Number.isSafeInteger(configuredBudget) || configuredBudget <= 0)) {
+        throw new Error('AGENT_AUTOSTART erfordert ein positives AGENT_API_BUDGET_CENTS.');
+    }
+
     return {
         version: 1,
-        infrastructureReady: false,
-        paused: true,
+        infrastructureReady: autoStart || localAutoStart,
+        paused: !(autoStart || localAutoStart),
         activeProjectId: null,
-        apiBudgetCents: 0,
+        apiBudgetCents: autoStart ? configuredBudget : 0,
         apiSpentCents: 0,
         apiStatus: 'unknown',
         apiBlockReason: null,
@@ -76,6 +87,23 @@ export class ControlPlane {
         return this.mutate(eventType, current => ({ ...current, ...patch }));
     }
 
+    async setPaused(paused: boolean): Promise<ControlState> {
+        if (!paused && await this.isKillSwitchActive()) {
+            throw new Error('Der Not-Aus ist aktiv. Der Runner kann nicht fortgesetzt werden.');
+        }
+        return this.mutate(paused ? 'system.paused' : 'system.resumed', state => {
+            if (!paused && !state.infrastructureReady) {
+                throw new Error('Die Infrastruktur ist nicht freigegeben. Der Runner kann nicht fortgesetzt werden.');
+            }
+            if (!paused && process.env.AGENT_EXECUTION_MODE !== 'local'
+                && process.env.BYPASS_BUDGET_CHECK !== 'true'
+                && (state.apiStatus === 'blocked' || state.apiBudgetCents <= state.apiSpentCents)) {
+                throw new Error('Der API-Anbieter ist blockiert oder es ist kein Restbudget vorhanden.');
+            }
+            return { ...state, paused };
+        });
+    }
+
     async getRunDecision(requiredBudgetCents = 1): Promise<RunDecision> {
         if (!Number.isSafeInteger(requiredBudgetCents) || requiredBudgetCents <= 0) {
             throw new Error('Erforderliches API-Budget muss eine positive ganze Cent-Zahl sein.');
@@ -95,6 +123,17 @@ export class ControlPlane {
             return { allowed: false, reason: `Verbleibendes API-Budget reicht nicht für die reservierten ${requiredBudgetCents} Cent.` };
         }
         return { allowed: true, reason: 'Kontrollprüfungen bestanden.' };
+    }
+
+    async getLocalRunDecision(): Promise<RunDecision> {
+        if (process.env.AGENT_EXECUTION_MODE !== 'local') {
+            return { allowed: false, reason: 'Lokale Ausführung ist nicht konfiguriert.' };
+        }
+        const state = await this.initialize();
+        if (await this.isKillSwitchActive()) return { allowed: false, reason: 'Not-Aus ist aktiv.' };
+        if (state.paused) return { allowed: false, reason: 'Lokaler Runner ist pausiert.' };
+        if (!state.infrastructureReady) return { allowed: false, reason: 'Lokale Laufzeit ist nicht freigegeben.' };
+        return { allowed: true, reason: 'Lokale, kostenfreie Task-Ausführung ist freigegeben.' };
     }
 
     async claimProject(projectId: string): Promise<ControlState> {
@@ -183,7 +222,7 @@ export class ControlPlane {
             if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
             const state = initialState();
             await this.write(state);
-            await this.appendEvent('control.initialized', { paused: true });
+            await this.appendEvent('control.initialized', { paused: state.paused });
             return state;
         }
     }

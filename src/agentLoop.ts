@@ -10,6 +10,7 @@ import { apiProviderBlockedMessage, ApiPausedError, getApiErrorDetails, importan
 import { AgentWorker } from './agentWorker.js';
 import { AutonomousStateStore } from './autonomousStateMachine.js';
 import { ControlPlane } from './controlPlane.js';
+import { executeLocalTaskCommand } from './localTaskExecutor.js';
 import { AgentTask, TaskQueue } from './taskQueue.js';
 
 type IdeaSource = 'agent' | 'manual';
@@ -45,7 +46,7 @@ interface GeneratedIdea {
 }
 
 const currentDirectory = path.dirname(fileURLToPath(import.meta.url));
-const workspaceRoot = path.resolve(currentDirectory, '..');
+const workspaceRoot = path.resolve(process.env.AGENT_WORKSPACE_ROOT || path.resolve(currentDirectory, '..'));
 const ideasFile = path.join(workspaceRoot, 'data', 'ideas.json');
 const ideasLock = `${ideasFile}.lock`;
 const controlPlane = new ControlPlane(workspaceRoot);
@@ -87,9 +88,17 @@ function readGuardrails() {
 }
 
 const guardrails = readGuardrails();
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const localExecutionMode = process.env.AGENT_EXECUTION_MODE === 'local';
+const openai = !localExecutionMode && process.env.OPENAI_API_KEY
+    ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+    : null;
 let stopping = false;
 let lastBlockedReason: string | null = null;
+
+function getOpenAIClient(): OpenAI {
+    if (!openai) throw new ApiPausedError('OPENAI_API_KEY ist nicht konfiguriert; Agenten-Ausführung bleibt pausiert.');
+    return openai;
+}
 
 async function markProviderBlocked(error: unknown): Promise<never> {
     const details = getApiErrorDetails(error);
@@ -175,6 +184,17 @@ async function updateIdeas(update: (ideas: BusinessIdea[]) => BusinessIdea[]): P
     }
 }
 
+function enrichUnprocessedIdeas(ideas: BusinessIdea[], processedAt: string): BusinessIdea[] {
+    return ideas.map(idea => {
+        const enriched = idea.feasibility && idea.salesPlan && idea.project
+            ? idea
+            : { ...idea, ...runBusinessAgentPipeline(idea) };
+        return enriched.source === 'manual' && !enriched.processedAt
+            ? { ...enriched, processedAt }
+            : enriched;
+    });
+}
+
 function isCompliant(idea: GeneratedIdea): boolean {
     const requiredText = [idea.title, idea.summary, idea.businessModel, idea.scalability];
     const allText = [...requiredText, ...(idea.targetMarkets ?? []), ...(idea.nextSteps ?? [])]
@@ -204,7 +224,7 @@ async function generateIdeas(contextIdeas: BusinessIdea[]): Promise<GeneratedIde
         console.log(`[AgentLoop] Sauber pausiert: ${decision.reason}`);
         return null;
     }
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
         model: guardrails.model,
         temperature: 0.8,
         max_completion_tokens: guardrails.maximumCompletionTokens,
@@ -275,12 +295,16 @@ async function generateIdeas(contextIdeas: BusinessIdea[]): Promise<GeneratedIde
 
 async function runIdeaCycle(): Promise<void> {
     const existing = await readIdeas();
+    const processedAt = new Date().toISOString();
+    if (existing.ideas.some(idea => !idea.feasibility || !idea.salesPlan || !idea.project)) {
+        await updateIdeas(ideas => enrichUnprocessedIdeas(ideas, processedAt));
+    }
+
     const generated = await generateIdeas(existing.ideas);
     if (!generated) {
-        await controlPlane.heartbeat();
+        await controlPlane.heartbeat(processedAt);
         return;
     }
-    const processedAt = new Date().toISOString();
     const newIdeas: BusinessIdea[] = generated.map(idea => ({
         ...(runBusinessAgentPipeline(idea) as EnrichedIdea),
         id: randomUUID(),
@@ -288,17 +312,7 @@ async function runIdeaCycle(): Promise<void> {
         createdAt: processedAt,
     }));
 
-    await updateIdeas(ideas => [
-        ...ideas.map(idea => {
-            const enriched = idea.feasibility && idea.salesPlan && idea.project
-                ? idea
-                : { ...idea, ...runBusinessAgentPipeline(idea) };
-            return enriched.source === 'manual' && !enriched.processedAt
-                ? { ...enriched, processedAt }
-                : enriched;
-        }),
-        ...newIdeas,
-    ]);
+    await updateIdeas(ideas => [...enrichUnprocessedIdeas(ideas, processedAt), ...newIdeas]);
 
     await controlPlane.heartbeat(processedAt);
 
@@ -378,6 +392,9 @@ async function runCompleteCycle(): Promise<void> {
 }
 
 export async function startAutonomousLoop(): Promise<void> {
+    if (localExecutionMode) {
+        throw new Error('Der lokale Ausführungsmodus startet keine modellbasierte autonome Ideen-Schleife.');
+    }
     console.log(`[AgentLoop] Gestartet: ${guardrails.ideasPerRun} Ideen pro Zyklus, Pause ${guardrails.sleepTimeMs} ms.`);
 
     while (!stopping) {
@@ -401,17 +418,13 @@ export async function startAutonomousLoop(): Promise<void> {
 process.once('SIGINT', () => { stopping = true; });
 process.once('SIGTERM', () => { stopping = true; });
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-    void startAutonomousLoop();
-}
-
 async function processUserCommand(task: AgentTask): Promise<{ message: string; targetAgent: string }> {
     const payload = task.payload as { message?: unknown; targetAgent?: unknown };
     const message = typeof payload.message === 'string' ? payload.message.trim() : '';
     const targetAgent = typeof payload.targetAgent === 'string' ? payload.targetAgent : 'master-orchestrator';
     if (!message) throw new Error('Task enthält keine Nachricht.');
 
-    const systemContent = `Du bist der Master-Orchestrator des Natur-Vitale-Agentensystems. Bearbeite den Nutzerauftrag für die Social-Media-Challenge konkret und ergebnisorientiert. Zielagent: ${targetAgent}. Beachte: genau ein aktives Projekt, keine eigenmächtigen Veröffentlichungen, keine Geheimnisse ausgeben, keine Rechts- oder Heilversprechen. Antworte knapp auf Deutsch mit Status, Ergebnis und nächstem ausführbaren Schritt.`;
+    const systemContent = `Du bist der Master-Orchestrator des Natur-Vitale-Agentensystems. Bearbeite den Nutzerauftrag für die Social-Media-Challenge konkret und ergebnisorientiert. Zielagent: ${targetAgent}. Du arbeitest ausschließlich textbasiert: führe keine Befehle aus, rufe keine externen Dienste auf, verändere keine Dateien oder Quelltexte und veröffentliche nichts. Liefere bei Datenverarbeitung, Content oder Automatisierung nur einen sicheren, überprüfbaren Vorschlag als Text; unbekannte oder destruktive Aktionen müssen menschlich geprüft werden. Beachte: genau ein aktives Projekt, keine Geheimnisse ausgeben, keine Rechts- oder Heilversprechen. Antworte knapp auf Deutsch mit Status, Ergebnis und nächstem ausführbaren Schritt.`;
     const maximumCostCents = estimateTokenCostCents(
         estimateMaximumTokenUsage(systemContent.length + message.length, guardrails.maximumCompletionTokens),
         guardrails.apiPricing,
@@ -419,7 +432,7 @@ async function processUserCommand(task: AgentTask): Promise<{ message: string; t
     const decision = await controlPlane.getRunDecision(maximumCostCents);
     if (!decision.allowed) throw new ApiPausedError(decision.reason);
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAIClient().chat.completions.create({
         model: guardrails.model,
         temperature: 0.3,
         max_completion_tokens: guardrails.maximumCompletionTokens,
@@ -442,13 +455,14 @@ async function processUserCommand(task: AgentTask): Promise<{ message: string; t
 
 async function checkApiRecovery(): Promise<void> {
     const state = await controlPlane.initialize();
+    if (!openai) return;
     if (state.nextApiCheckAt && Date.parse(state.nextApiCheckAt) > Date.now()) return;
     if (state.apiStatus !== 'blocked' && state.lastApiCheckAt
         && Date.parse(state.lastApiCheckAt) + guardrails.apiCheckIntervalMs > Date.now()) return;
 
     if (state.apiStatus !== 'blocked') {
         try {
-            await openai.models.list();
+            await getOpenAIClient().models.list();
             await controlPlane.markApiHealthy();
         } catch (error) {
             const details = getApiErrorDetails(error);
@@ -463,7 +477,7 @@ async function checkApiRecovery(): Promise<void> {
     if (state.apiBudgetCents - state.apiSpentCents < 1 && process.env.BYPASS_BUDGET_CHECK !== 'true') return;
 
     try {
-        const response = await openai.chat.completions.create({
+        const response = await getOpenAIClient().chat.completions.create({
             model: guardrails.model,
             temperature: 0,
             max_completion_tokens: 1,
@@ -487,6 +501,7 @@ async function checkApiRecovery(): Promise<void> {
 }
 
 export async function startApiMonitorLoop(): Promise<void> {
+    if (localExecutionMode) return;
     console.log(`[ApiMonitor] Gestartet: Prüfung alle ${guardrails.apiCheckIntervalMs} ms bei API-Sperre.`);
     while (!stopping) {
         try {
@@ -499,16 +514,26 @@ export async function startApiMonitorLoop(): Promise<void> {
 }
 
 export async function startTaskWorkerLoop(): Promise<void> {
+    const handler = localExecutionMode
+        ? async (task: AgentTask) => {
+            const payload = task.payload as { message?: unknown };
+            const message = typeof payload.message === 'string' ? payload.message.trim() : '';
+            if (!message) throw new Error('Lokaler Task enthält keine Nachricht.');
+            return executeLocalTaskCommand(message, workspaceRoot);
+        }
+        : processUserCommand;
     const worker = new AgentWorker(taskQueue, {
         id: `master-orchestrator-${process.pid}`,
         role: 'master-orchestrator',
-        handler: processUserCommand,
+        handler,
     });
-    console.log('[TaskWorker] Master-Orchestrator gestartet.');
+    console.log(`[TaskWorker] ${localExecutionMode ? 'Lokaler deterministischer Runner' : 'Master-Orchestrator'} gestartet.`);
 
     while (!stopping) {
         try {
-            const decision = await controlPlane.getRunDecision();
+            const decision = localExecutionMode
+                ? await controlPlane.getLocalRunDecision()
+                : await controlPlane.getRunDecision();
             if (decision.allowed) await worker.runOnce();
         } catch (error) {
             await controlPlane.recordFailure(error instanceof Error ? error.message : String(error));
@@ -516,4 +541,8 @@ export async function startTaskWorkerLoop(): Promise<void> {
         }
         if (!stopping) await delay(2_000);
     }
+}
+
+export async function closeAgentLoopResources(): Promise<void> {
+    await taskQueue.close();
 }

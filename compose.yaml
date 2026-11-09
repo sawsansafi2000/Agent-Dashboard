@@ -1,6 +1,144 @@
 name: nv-agenten
 
 services:
+  portal:
+    image: nv-agenten:latest
+    restart: unless-stopped
+    user: node
+    entrypoint: ["node"]
+    command: ["/app/portal/server.cjs"]
+    environment:
+      NODE_ENV: production
+      PORT: "3200"
+      PORTAL_DATABASE_PATH: /app/data/portal.sqlite
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_PRODUCT_CATALOG: ${STRIPE_PRODUCT_CATALOG:-}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://${DOMAIN:-naturvitale.tech}}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      SENDER_EMAIL: ${SENDER_EMAIL:-}
+      SENDER_NAME: ${SENDER_NAME:-NaturVitale}
+      PORTAL_API_RATE_LIMIT: ${PORTAL_API_RATE_LIMIT:-240}
+      PORTAL_LLM_RATE_LIMIT: ${PORTAL_LLM_RATE_LIMIT:-8}
+      PORTAL_MONTHLY_TOKEN_LIMIT: ${PORTAL_MONTHLY_TOKEN_LIMIT:-50000}
+      PORTAL_PREMIUM_MONTHLY_TOKEN_LIMIT: ${PORTAL_PREMIUM_MONTHLY_TOKEN_LIMIT:-200000}
+      PORTAL_ERROR_TOKEN: ${PORTAL_ERROR_TOKEN:-}
+      PORTAL_ERROR_RETENTION_DAYS: ${PORTAL_ERROR_RETENTION_DAYS:-90}
+      PORTAL_MARKET_DATA_URL: ${PORTAL_MARKET_DATA_URL:-}
+      PORTAL_MARKET_DATA_TOKEN: ${PORTAL_MARKET_DATA_TOKEN:-}
+      PORTAL_TAX_PROFILES_JSON: ${PORTAL_TAX_PROFILES_JSON:-[]}
+      PORTAL_STRIPE_CONNECT_ENABLED: ${PORTAL_STRIPE_CONNECT_ENABLED:-false}
+    expose:
+      - "3200"
+    volumes:
+      - portal_data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3200/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  portal-backup:
+    image: nv-agenten:latest
+    restart: unless-stopped
+    depends_on:
+      portal:
+        condition: service_healthy
+    user: node
+    entrypoint: ["node"]
+    command: ["/app/scripts/backup-portal.cjs"]
+    environment:
+      PORTAL_DATABASE_PATH: /app/data/portal.sqlite
+      PORTAL_BACKUP_DIRECTORY: /app/backups
+      PORTAL_BACKUP_KEY: ${PORTAL_BACKUP_KEY:?PORTAL_BACKUP_KEY must be set}
+      PORTAL_BACKUP_RETENTION: ${PORTAL_BACKUP_RETENTION:-30}
+      PORTAL_BACKUP_INTERVAL_MS: ${PORTAL_BACKUP_INTERVAL_MS:-86400000}
+    volumes:
+      - portal_data:/app/data:ro
+      - portal_backups:/app/backups
+    healthcheck:
+      test: ["CMD", "node", "/app/scripts/check-portal-backup.cjs"]
+      interval: 5m
+      timeout: 10s
+      start_period: 2m
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: "3"
+
+  portal-offsite-backup:
+    image: rclone/rclone:1.76.0
+    profiles: ["offsite"]
+    restart: unless-stopped
+    depends_on:
+      portal-backup:
+        condition: service_healthy
+    user: "1000:1000"
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    networks:
+      - offsite-egress
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -eu
+        : "$${PORTAL_OFFSITE_BUCKET:?PORTAL_OFFSITE_BUCKET must be set}"
+        : "$${RCLONE_CONFIG_HETZNER_ACCESS_KEY_ID:?PORTAL_OFFSITE_ACCESS_KEY_ID must be set}"
+        : "$${RCLONE_CONFIG_HETZNER_SECRET_ACCESS_KEY:?PORTAL_OFFSITE_SECRET_ACCESS_KEY must be set}"
+        while true; do
+          found=0
+          for backup in /backups/portal-*.sqlite.enc; do
+            [ -f "$$backup" ] || continue
+            found=1
+            file=$${backup##*/}
+            if ! rclone copyto "$$backup" "hetzner:$${PORTAL_OFFSITE_BUCKET}/portal/$$file" --immutable --log-level ERROR; then
+              echo "[Portal Offsite Backup] upload failed; retrying in 5 minutes" >&2
+              sleep 300
+              continue 2
+            fi
+          done
+          if [ "$$found" -eq 1 ]; then
+            echo "[Portal Offsite Backup] encrypted backups synchronized"
+          else
+            echo "[Portal Offsite Backup] no encrypted backups found" >&2
+          fi
+          sleep 900
+        done
+    environment:
+      PORTAL_OFFSITE_BUCKET: ${PORTAL_OFFSITE_BUCKET:-}
+      RCLONE_CONFIG: /dev/null
+      RCLONE_CONFIG_HETZNER_TYPE: s3
+      RCLONE_CONFIG_HETZNER_PROVIDER: Other
+      RCLONE_CONFIG_HETZNER_ACCESS_KEY_ID: ${PORTAL_OFFSITE_ACCESS_KEY_ID:-}
+      RCLONE_CONFIG_HETZNER_SECRET_ACCESS_KEY: ${PORTAL_OFFSITE_SECRET_ACCESS_KEY:-}
+      RCLONE_CONFIG_HETZNER_ENDPOINT: ${PORTAL_OFFSITE_ENDPOINT:-https://nbg1.your-objectstorage.com}
+      RCLONE_CONFIG_HETZNER_REGION: ${PORTAL_OFFSITE_REGION:-nbg1}
+      RCLONE_CONFIG_HETZNER_ACL: private
+      XDG_CACHE_HOME: /tmp
+    volumes:
+      - portal_backups:/backups:ro
+    healthcheck:
+      test: ["CMD", "rclone", "lsf", "hetzner:${PORTAL_OFFSITE_BUCKET:-}/portal", "--max-depth", "1"]
+      interval: 5m
+      timeout: 30s
+      start_period: 2m
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: "3"
+
   app:
     build:
       context: .
@@ -14,8 +152,18 @@ services:
       NODE_ENV: production
       PORT: "3000"
       INTERNAL_AGENT_API_PORT: "3101"
-      PRODUCTION_APP_URL: https://${DOMAIN:-localhost}
-      DASHBOARD_URL: https://${DOMAIN:-localhost}/dashboard
+      DATABASE_PATH: /app/data/dashboard.sqlite
+      RUN_AGENT_WORKER: "true"
+      AGENT_AUTOSTART: ${AGENT_AUTOSTART:-false}
+      AGENT_API_BUDGET_CENTS: ${AGENT_API_BUDGET_CENTS:-0}
+      AGENT_EXECUTION_MODE: ${AGENT_EXECUTION_MODE:-local}
+      AGENT_LOCAL_AUTOSTART: ${AGENT_LOCAL_AUTOSTART:-true}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_CODER_MODEL: ${OLLAMA_CODER_MODEL:-qwen2.5-coder:7b}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-https://${DOMAIN:-naturvitale.tech}}
+      DASHBOARD_PROXY_TOKEN: ${DASHBOARD_PROXY_TOKEN:?DASHBOARD_PROXY_TOKEN must be set}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     expose:
       - "3000"
     volumes:
@@ -24,7 +172,7 @@ services:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
-      start_period: 30s
+      start_period: 60s
       retries: 3
     logging:
       driver: json-file
@@ -33,14 +181,22 @@ services:
         max-file: "5"
 
   caddy:
-    image: caddy:2-alpine
+    image: nv-agenten-caddy:latest
+    build:
+      context: .
+      dockerfile: deploy/Caddy.Dockerfile
     restart: unless-stopped
     depends_on:
       app:
         condition: service_healthy
+      portal:
+        condition: service_healthy
     environment:
-      DOMAIN: ${DOMAIN:-localhost}
+      DOMAIN: ${DOMAIN:-naturvitale.tech}
       CADDY_PASSWORD_HASH: ${CADDY_PASSWORD_HASH:?CADDY_PASSWORD_HASH must be set}
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:?DASHBOARD_USERNAME must be set}
+      DASHBOARD_PROXY_TOKEN: ${DASHBOARD_PROXY_TOKEN:?DASHBOARD_PROXY_TOKEN must be set}
+      PORTAL_ERROR_TOKEN: ${PORTAL_ERROR_TOKEN:-}
     ports:
       - "80:80"
       - "443:443"
@@ -57,5 +213,11 @@ services:
 
 volumes:
   agent_data:
+  portal_data:
+  portal_backups:
   caddy_data:
   caddy_config:
+
+networks:
+  offsite-egress:
+    driver: bridge

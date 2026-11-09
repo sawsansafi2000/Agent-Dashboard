@@ -18,6 +18,74 @@ test('starts paused and blocks execution', async t => {
     assert.equal((await control.getRunDecision()).allowed, false);
 });
 
+test('only enables automatic startup with an API key and a positive explicit budget', async t => {
+    const { root, control } = await fixture();
+    const previousAutoStart = process.env.AGENT_AUTOSTART;
+    const previousBudget = process.env.AGENT_API_BUDGET_CENTS;
+    const previousApiKey = process.env.OPENAI_API_KEY;
+    t.after(async () => {
+        await rm(root, { recursive: true, force: true });
+        if (previousAutoStart === undefined) delete process.env.AGENT_AUTOSTART;
+        else process.env.AGENT_AUTOSTART = previousAutoStart;
+        if (previousBudget === undefined) delete process.env.AGENT_API_BUDGET_CENTS;
+        else process.env.AGENT_API_BUDGET_CENTS = previousBudget;
+        if (previousApiKey === undefined) delete process.env.OPENAI_API_KEY;
+        else process.env.OPENAI_API_KEY = previousApiKey;
+    });
+
+    process.env.AGENT_AUTOSTART = 'true';
+    process.env.AGENT_API_BUDGET_CENTS = '2500';
+    process.env.OPENAI_API_KEY = 'test-key';
+    const state = await control.initialize();
+    assert.equal(state.paused, false);
+    assert.equal(state.infrastructureReady, true);
+    assert.equal(state.apiBudgetCents, 2500);
+
+    const missingKeyRoot = await mkdtemp(path.join(tmpdir(), 'nv-control-'));
+    t.after(() => rm(missingKeyRoot, { recursive: true, force: true }));
+    const missingKeyControl = new ControlPlane(missingKeyRoot);
+    delete process.env.OPENAI_API_KEY;
+    await assert.rejects(() => missingKeyControl.initialize(), /AGENT_AUTOSTART erfordert OPENAI_API_KEY/);
+});
+
+test('starts a configured local runner without API keys, budget or model calls', async t => {
+    const root = await mkdtemp(path.join(tmpdir(), 'nv-local-control-'));
+    const previous = {
+        executionMode: process.env.AGENT_EXECUTION_MODE,
+        localAutostart: process.env.AGENT_LOCAL_AUTOSTART,
+        autoStart: process.env.AGENT_AUTOSTART,
+        budget: process.env.AGENT_API_BUDGET_CENTS,
+        apiKey: process.env.OPENAI_API_KEY,
+    };
+    t.after(async () => {
+        await rm(root, { recursive: true, force: true });
+        if (previous.executionMode === undefined) delete process.env.AGENT_EXECUTION_MODE;
+        else process.env.AGENT_EXECUTION_MODE = previous.executionMode;
+        if (previous.localAutostart === undefined) delete process.env.AGENT_LOCAL_AUTOSTART;
+        else process.env.AGENT_LOCAL_AUTOSTART = previous.localAutostart;
+        if (previous.autoStart === undefined) delete process.env.AGENT_AUTOSTART;
+        else process.env.AGENT_AUTOSTART = previous.autoStart;
+        if (previous.budget === undefined) delete process.env.AGENT_API_BUDGET_CENTS;
+        else process.env.AGENT_API_BUDGET_CENTS = previous.budget;
+        if (previous.apiKey === undefined) delete process.env.OPENAI_API_KEY;
+        else process.env.OPENAI_API_KEY = previous.apiKey;
+    });
+
+    process.env.AGENT_EXECUTION_MODE = 'local';
+    process.env.AGENT_LOCAL_AUTOSTART = 'true';
+    process.env.AGENT_AUTOSTART = 'true';
+    process.env.AGENT_API_BUDGET_CENTS = '0';
+    delete process.env.OPENAI_API_KEY;
+
+    const control = new ControlPlane(root);
+    const state = await control.initialize();
+    assert.equal(state.paused, false);
+    assert.equal(state.infrastructureReady, true);
+    assert.equal(state.apiBudgetCents, 0);
+    assert.equal((await control.getLocalRunDecision()).allowed, true);
+    assert.equal((await control.getRunDecision()).allowed, false);
+});
+
 test('requires readiness and budget before execution', async t => {
     const { root, control } = await fixture();
     t.after(() => rm(root, { recursive: true, force: true }));
@@ -73,6 +141,32 @@ test('kill switch overrides an otherwise runnable state', async t => {
     await control.update({ paused: false, infrastructureReady: true, apiBudgetCents: 500 }, 'test.ready');
     await writeFile(path.join(root, 'STOP.txt'), 'ACTIVE', 'utf8');
     assert.deepEqual(await control.getRunDecision(), { allowed: false, reason: 'Not-Aus ist aktiv.' });
+});
+
+test('resume requires readiness, available provider budget and an inactive kill switch', async t => {
+    const { root, control } = await fixture();
+    const previousExecutionMode = process.env.AGENT_EXECUTION_MODE;
+    const previousBudgetBypass = process.env.BYPASS_BUDGET_CHECK;
+    t.after(async () => {
+        await rm(root, { recursive: true, force: true });
+        if (previousExecutionMode === undefined) delete process.env.AGENT_EXECUTION_MODE;
+        else process.env.AGENT_EXECUTION_MODE = previousExecutionMode;
+        if (previousBudgetBypass === undefined) delete process.env.BYPASS_BUDGET_CHECK;
+        else process.env.BYPASS_BUDGET_CHECK = previousBudgetBypass;
+    });
+
+    process.env.AGENT_EXECUTION_MODE = 'model-backed';
+    process.env.BYPASS_BUDGET_CHECK = 'false';
+    await control.initialize();
+    await assert.rejects(() => control.setPaused(false), /Infrastruktur ist nicht freigegeben/);
+    await control.update({
+        infrastructureReady: true,
+        apiBudgetCents: 500,
+        apiStatus: 'blocked',
+    }, 'test.ready');
+    await assert.rejects(() => control.setPaused(false), /API-Anbieter ist blockiert/);
+    await writeFile(path.join(root, 'STOP.txt'), 'ACTIVE', 'utf8');
+    await assert.rejects(() => control.setPaused(false), /Not-Aus ist aktiv/);
 });
 
 test('blocks on provider quota errors and resumes after a healthy check', async t => {

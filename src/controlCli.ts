@@ -28,6 +28,16 @@ async function main(): Promise<void> {
         }, 'control.infrastructure-approved'), null, 2));
         return;
     }
+    if (command === 'approve-local') {
+        if (process.env.AGENT_EXECUTION_MODE !== 'local') {
+            throw new Error('approve-local ist nur mit AGENT_EXECUTION_MODE=local zulässig.');
+        }
+        console.log(JSON.stringify(await control.update({
+            infrastructureReady: true,
+            paused: false,
+        }, 'control.local-execution-approved'), null, 2));
+        return;
+    }
     if (command === 'claim') {
         const projectId = process.argv[3]?.trim();
         if (!projectId) throw new Error('Eine Projekt-ID ist erforderlich.');

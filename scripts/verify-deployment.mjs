@@ -1,3 +1,7 @@
+import dotenv from 'dotenv';
+
+dotenv.config();
+
 const baseUrl = (process.argv[2] || process.env.PRODUCTION_APP_URL || '').replace(/\/$/, '');
 const dashboardUsername = process.env.DASHBOARD_USERNAME;
 const dashboardPassword = process.env.DASHBOARD_PASSWORD;
@@ -7,11 +11,11 @@ if (!/^https?:\/\//.test(baseUrl)) {
 }
 
 const checks = [
-    { path: '/', expectedStatuses: [200], authenticated: false },
-    { path: '/health', expectedStatuses: [200], authenticated: false },
-    { path: '/dashboard', expectedStatuses: [200], authenticated: true },
-    { path: '/dashboard/chat', expectedStatuses: [200], authenticated: true },
-    { path: '/api/status', expectedStatuses: [200], authenticated: true },
+    { path: '/', kind: 'page' },
+    { path: '/health', kind: 'health' },
+    { path: '/api/products', kind: 'api' },
+    { path: '/api/dashboard-stats', kind: 'api' },
+    { path: '/api/missions', kind: 'missions' },
 ];
 
 if (!dashboardUsername || !dashboardPassword) {
@@ -25,11 +29,23 @@ for (const check of checks) {
     try {
         const response = await fetch(`${baseUrl}${check.path}`, {
             redirect: 'manual',
-            headers: check.authenticated ? { authorization } : undefined,
+            headers: { authorization },
             signal: AbortSignal.timeout(10_000),
         });
-        const passed = check.expectedStatuses.includes(response.status);
-        console.log(`${passed ? 'OK' : 'FEHLER'} ${check.path}: HTTP ${response.status}`);
+        const contentType = response.headers.get('content-type') || '';
+        let passed = response.status === 200;
+        if (passed && check.kind === 'page') passed = contentType.includes('text/html');
+        if (passed && check.kind !== 'page') {
+            const body = await response.json();
+            if (check.kind === 'health') {
+                passed = body.status === 'ok' && body.runnerAvailable === true;
+            } else if (check.kind === 'api') {
+                passed = body.success === true;
+            } else if (check.kind === 'missions') {
+                passed = body.success === true && body.runnerAvailable === true;
+            }
+        }
+        console.log(`${passed ? 'OK' : 'FEHLER'} ${check.path}: HTTP ${response.status}${passed ? '' : ' (Inhalt oder Runner-Status ungültig)'}`);
         failed ||= !passed;
     } catch (error) {
         failed = true;

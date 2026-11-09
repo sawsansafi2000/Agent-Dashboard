@@ -1,0 +1,754 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#09110f">
+    <title>Natur Vitale | Enterprise Agent OS</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --page: #09110f;
+            --sidebar: #0c1512;
+            --panel: #111c18;
+            --panel-raised: #15231d;
+            --line: #24352c;
+            --text: #eef5ef;
+            --muted: #91a399;
+            --green: #a7efbd;
+            --mint: #72d9a1;
+            --blue: #a8c9ff;
+            --amber: #f0c77b;
+            --red: #ff9a8b;
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 92px; }
+        body { min-width: 320px; min-height: 100vh; margin: 0; background: var(--page); color: var(--text); }
+        button, input, textarea { font: inherit; }
+        button, a { -webkit-tap-highlight-color: transparent; }
+        a { color: inherit; text-decoration: none; }
+        .app { min-height: 100vh; }
+        .sidebar {
+            position: fixed; inset: 0 auto 0 0; z-index: 4; display: flex; width: 258px;
+            flex-direction: column; padding: 25px 16px 18px; border-right: 1px solid var(--line); background: var(--sidebar);
+        }
+        .brand { display: flex; align-items: center; gap: 12px; padding: 0 10px 26px; }
+        .brand-mark { display: grid; width: 39px; height: 39px; place-items: center; border: 1px solid #385443; border-radius: 13px; background: #16271d; color: var(--green); font-size: 20px; }
+        .brand-name { font-size: 14px; font-weight: 750; letter-spacing: .01em; }
+        .brand-caption { margin-top: 3px; color: var(--muted); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+        .nav-label { padding: 10px 11px 8px; color: #72867a; font-size: 10px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+        .nav-list { display: grid; gap: 4px; }
+        .nav-item { display: flex; min-height: 39px; align-items: center; gap: 11px; padding: 8px 11px; border: 1px solid transparent; border-radius: 9px; color: #b0beb4; font-size: 12px; transition: background .16s, color .16s, border-color .16s; }
+        .nav-item:hover, .nav-item.active { border-color: #284335; background: #14251b; color: var(--green); }
+        .nav-icon { width: 17px; color: #86a08e; text-align: center; font-size: 14px; }
+        .sidebar-bottom { margin-top: auto; }
+        .sidebar-status { padding: 13px; border: 1px solid var(--line); border-radius: 11px; background: #101b16; }
+        .sidebar-status strong { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+        .sidebar-status p { margin: 7px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+        .dot { display: inline-block; width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: var(--mint); box-shadow: 0 0 12px #72d9a155; }
+        .dot.offline { background: var(--red); box-shadow: none; }
+        .sidebar-foot { padding: 14px 9px 0; color: #708077; font-size: 10px; }
+        main { min-height: 100vh; margin-left: 258px; }
+        .topbar { position: sticky; top: 0; z-index: 3; display: flex; min-height: 69px; align-items: center; justify-content: space-between; gap: 20px; padding: 13px 34px; border-bottom: 1px solid var(--line); background: #0b1411ed; backdrop-filter: blur(18px); }
+        .topbar-title { color: #c1cdc4; font-size: 12px; }
+        .topbar-title strong { color: var(--text); }
+        .topbar-right { display: flex; align-items: center; gap: 14px; }
+        .live-label { display: flex; align-items: center; gap: 8px; color: #b9c9bd; font-size: 11px; }
+        .button { display: inline-flex; min-height: 37px; align-items: center; justify-content: center; gap: 8px; padding: 9px 13px; border: 1px solid #42644e; border-radius: 8px; background: #a7efbd; color: #102017; cursor: pointer; font-size: 11px; font-weight: 750; transition: filter .16s, transform .16s; }
+        .button:hover { filter: brightness(1.07); transform: translateY(-1px); }
+        .button:disabled { cursor: wait; opacity: .6; transform: none; }
+        .button.secondary { border-color: #33493b; background: #17241d; color: #dce8df; }
+        .button.ghost { border-color: var(--line); background: transparent; color: #b9c9bd; }
+        .content { width: min(1420px, 100%); margin: 0 auto; padding: 34px; }
+        .eyebrow { color: var(--mint); font-size: 10px; font-weight: 750; letter-spacing: .15em; text-transform: uppercase; }
+        h1 { margin: 11px 0 8px; font-size: clamp(26px, 3vw, 37px); font-weight: 650; letter-spacing: -.045em; line-height: 1.15; }
+        .intro { max-width: 740px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.7; }
+        .hero-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 27px; }
+        .hero-note { display: flex; align-items: center; gap: 9px; padding: 11px 13px; border: 1px solid #284335; border-radius: 9px; background: #102018; color: #c6d9cc; font-size: 10px; white-space: nowrap; }
+        .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 25px; }
+        .metric, .card { border: 1px solid var(--line); border-radius: 13px; background: var(--panel); }
+        .metric { min-height: 116px; padding: 17px; }
+        .metric-label { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 10px; }
+        .metric-symbol { color: #88a594; font-size: 15px; }
+        .metric-value { margin-top: 15px; font-size: 21px; font-weight: 680; letter-spacing: -.03em; }
+        .metric-help { margin-top: 5px; color: #73847a; font-size: 10px; }
+        .section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 15px; margin: 31px 0 13px; }
+        .section-heading h2 { margin: 0; font-size: 16px; font-weight: 650; letter-spacing: -.02em; }
+        .section-heading p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+        .state-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+        .state-card { padding: 16px; }
+        .state-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 10px; }
+        .state-value { margin: 19px 0 5px; font-size: 25px; font-weight: 680; letter-spacing: -.04em; }
+        .state-caption { color: #829388; font-size: 10px; }
+        .pill { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border: 1px solid #34513e; border-radius: 20px; background: #16271d; color: #b9e8c5; font-size: 9px; white-space: nowrap; }
+        .pill.neutral { border-color: #36443b; background: #19221c; color: #b4c0b7; }
+        .main-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, .8fr); gap: 13px; }
+        .card { padding: 19px; }
+        .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+        .card-title { margin: 0; font-size: 14px; font-weight: 650; }
+        .card-description { margin: 6px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+        .mission-form { margin-top: 18px; }
+        .mission-form label { display: block; margin-bottom: 8px; color: #c4d2c8; font-size: 10px; font-weight: 650; }
+        .patch-output { max-height: 560px; overflow: auto; padding: 14px; border: 1px solid var(--line); border-radius: 9px; background: #0a120e; color: #cde8d4; font: 11px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; white-space: pre; }
+        textarea, input, select { width: 100%; border: 1px solid #304138; border-radius: 9px; outline: none; background: #0d1712; color: var(--text); }
+        textarea { min-height: 105px; padding: 12px; resize: vertical; font-size: 11px; line-height: 1.6; }
+        input, select { min-height: 39px; padding: 9px 11px; font-size: 11px; }
+        textarea::placeholder, input::placeholder { color: #697a70; }
+        textarea:focus, input:focus, select:focus { border-color: #6ea780; box-shadow: 0 0 0 3px #72d9a11b; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .form-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
+        .form-hint { color: #718177; font-size: 9px; }
+        .notice { min-height: 18px; margin: 11px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+        .notice.error { color: var(--red); }
+        .notice.success { color: var(--green); }
+        .queue-list, .audit-list { display: grid; gap: 8px; margin-top: 17px; }
+        .queue-item, .audit-item { padding: 11px; border: 1px solid #26372e; border-radius: 9px; background: #0e1813; }
+        .queue-meta, .audit-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #8da095; font-size: 9px; }
+        .queue-content { margin: 8px 0 0; color: #d2ded5; font-size: 10px; line-height: 1.55; }
+        .empty-state { padding: 18px 10px; color: #819187; font-size: 10px; text-align: center; }
+        .module-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+        .module-card { min-height: 138px; }
+        .module-icon { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid #31473a; border-radius: 9px; background: #17251c; color: var(--green); font-size: 13px; }
+        .module-card h3 { margin: 13px 0 6px; font-size: 12px; font-weight: 650; }
+        .module-card p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+        .module-card .pill { margin-top: 12px; }
+        .footer { margin-top: 32px; padding: 18px 0 5px; border-top: 1px solid var(--line); color: #718177; font-size: 9px; line-height: 1.6; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); border: 0; }
+        @media (max-width: 1100px) {
+            .sidebar { width: 225px; }
+            main { margin-left: 225px; }
+            .content { padding: 27px 24px; }
+            .metrics, .state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 760px) {
+            .sidebar { position: static; width: auto; height: auto; padding: 14px 15px 11px; border-right: 0; border-bottom: 1px solid var(--line); }
+            .brand { padding: 0 4px 12px; }
+            .nav-label, .sidebar-bottom { display: none; }
+            .nav-list { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+            .nav-item { min-height: 34px; flex: 0 0 auto; gap: 7px; padding: 7px 9px; font-size: 10px; }
+            .nav-icon { width: auto; }
+            main { margin-left: 0; }
+            .topbar { min-height: 55px; padding: 10px 17px; }
+            .topbar-title { font-size: 10px; }
+            .topbar-right { gap: 9px; }
+            .live-label { font-size: 9px; }
+            .button { min-height: 34px; padding: 8px 10px; font-size: 10px; }
+            .content { padding: 24px 16px; }
+            .hero-row { align-items: flex-start; flex-direction: column; gap: 13px; }
+            .intro { font-size: 12px; }
+            .main-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 440px) {
+            .metrics, .state-grid, .module-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .form-grid { grid-template-columns: 1fr; gap: 9px; }
+            .metric { min-height: 105px; padding: 12px; }
+            .metric-label { font-size: 9px; }
+            .metric-value { font-size: 17px; }
+            .state-card { padding: 12px; }
+            .state-value { font-size: 21px; }
+            .card { padding: 15px; }
+            .hero-note { white-space: normal; }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <aside class="sidebar" aria-label="Hauptnavigation">
+        <a class="brand" href="#overview" aria-label="Natur Vitale Dashboard">
+            <span class="brand-mark" aria-hidden="true">✳</span>
+            <span><span class="brand-name">Natur Vitale OS</span><span class="brand-caption">Operations Master</span></span>
+        </a>
+        <div class="nav-label">Arbeitsbereich</div>
+        <nav class="nav-list">
+            <a class="nav-item active" href="#overview"><span class="nav-icon">◈</span>360° Übersicht</a>
+            <a class="nav-item" href="#sales"><span class="nav-icon">↗</span>Autonomer Sales &amp; Inbound</a>
+            <a class="nav-item" href="#content"><span class="nav-icon">✎</span>Social &amp; Content</a>
+            <a class="nav-item" href="#avatars"><span class="nav-icon">◉</span>KI-Avatare &amp; Sprache</a>
+            <a class="nav-item" href="#services"><span class="nav-icon">⌂</span>Coaching &amp; Services</a>
+            <a class="nav-item" href="#human-loop"><span class="nav-icon">◎</span>Human-in-the-Loop</a>
+            <a class="nav-item" href="#developer-agent"><span class="nav-icon">{ }</span>Developer-Agent</a>
+            <a class="nav-item" href="#compliance"><span class="nav-icon">◇</span>IP / Compliance</a>
+            <a class="nav-item" href="#audit"><span class="nav-icon">▤</span>WORM-Audit</a>
+            <a class="nav-item" href="#token-guard"><span class="nav-icon">◉</span>Token-Guard</a>
+            <a class="nav-item" href="#settings"><span class="nav-icon">⚙</span>System &amp; Integrationen</a>
+        </nav>
+        <div class="sidebar-bottom">
+            <div class="sidebar-status">
+                <strong><span id="sidebar-dot" class="dot"></span><span id="sidebar-status">Verbindung wird geprüft</span></strong>
+                <p>Lokales Operations-Dashboard<br>API: localhost:3000</p>
+            </div>
+            <div class="sidebar-foot">NATUR VITALE · ENTERPRISE AGENT OS</div>
+        </div>
+    </aside>
+    <main>
+        <header class="topbar">
+            <div class="topbar-title"><strong>Natur Vitale</strong> <span aria-hidden="true">/</span> Operations</div>
+            <div class="topbar-right">
+                <span class="live-label"><span id="top-dot" class="dot"></span><span id="system-status">VERBINDUNG</span></span>
+                <button class="button secondary" id="refresh-button" type="button">↻ Aktualisieren</button>
+            </div>
+        </header>
+        <div class="content">
+            <section id="overview">
+                <div class="hero-row">
+                    <div>
+                        <div class="eyebrow">Enterprise Agent OS · Live Operations</div>
+                        <h1>Was arbeitet. Was entsteht.<br>Was als Nächstes zählt.</h1>
+                        <p class="intro">Die zentrale Steuerung für Agenten, operative Abläufe und menschliche Freigaben. Der Status wird direkt aus den verfügbaren lokalen Systemdaten geladen.</p>
+                    </div>
+                    <div class="hero-note"><span class="dot"></span><span>Lokale Steuerung · Daten bleiben in Ihrer Umgebung</span></div>
+                </div>
+                <div class="metrics" aria-label="Systemmetriken">
+                    <article class="metric">
+                        <div class="metric-label"><span>Bestätigter Stripe-Umsatz</span><span class="metric-symbol">↗</span></div>
+                        <div class="metric-value" id="revenue-metric">Nicht erfasst</div>
+                        <div class="metric-help" id="revenue-help">Wird per Stripe-Webhook verbucht</div>
+                    </article>
+                    <article class="metric">
+                        <div class="metric-label"><span>Autonome Ersparnisse</span><span class="metric-symbol">⌁</span></div>
+                        <div class="metric-value" id="savings-metric">Nicht erfasst</div>
+                        <div class="metric-help">Keine Kostenbasis angebunden</div>
+                    </article>
+                    <article class="metric">
+                        <div class="metric-label"><span>AI-Token-Kosten</span><span class="metric-symbol">◉</span></div>
+                        <div class="metric-value" id="token-metric">Nicht erfasst</div>
+                        <div class="metric-help">Token-Monitoring nicht konfiguriert</div>
+                    </article>
+                    <article class="metric">
+                        <div class="metric-label"><span>System-Status</span><span class="metric-symbol">⌘</span></div>
+                        <div class="metric-value" id="system-metric">Prüfung …</div>
+                        <div class="metric-help" id="system-help">Verbinde mit dem lokalen Backend</div>
+                    </article>
+                </div>
+                <div class="section-heading">
+                    <div><h2>Operations-Kontrollzentrum</h2><p>Live-Zustand der verfügbaren Agenten- und Geschäftsprozesse</p></div>
+                    <span class="pill"><span class="dot"></span> Live-Status</span>
+                </div>
+                <div class="state-grid">
+                    <article class="metric state-card"><div class="state-top"><span>Agenten</span><span class="pill" id="agents-pill">Kernel</span></div><div class="state-value" id="agents-count">1</div><div class="state-caption">Lokaler Kernel verfügbar</div></article>
+                    <article class="metric state-card"><div class="state-top"><span>Projekte</span><span class="pill neutral">Datenquelle</span></div><div class="state-value" id="projects-count">—</div><div class="state-caption">Keine Projekt-API angebunden</div></article>
+                    <article class="metric state-card"><div class="state-top"><span>Bestellungen</span><span class="pill neutral">Stripe</span></div><div class="state-value" id="orders-count">0</div><div class="state-caption" id="fulfillment-count">Bereitstellung ausstehend: 0</div></article>
+                    <article class="metric state-card"><div class="state-top"><span>Gesamtumsatz</span><span class="pill neutral">EUR · bezahlt</span></div><div class="state-value" id="total-revenue">0,00 €</div><div class="state-caption">Bestätigte Stripe-Zahlungen</div></article>
+                </div>
+            </section>
+
+            <section id="portal-errors">
+                <div class="section-heading">
+                    <div><h2>Portal-Fehler</h2><p>Gespeicherte Fehlerereignisse der öffentlichen Portal-API</p></div>
+                    <button class="button ghost" id="errors-refresh" type="button">Fehler laden</button>
+                </div>
+                <article class="card">
+                    <p class="notice" id="errors-notice" role="status" aria-live="polite"></p>
+                    <div class="queue-list" id="portal-error-list"><div class="empty-state">Fehlerereignisse werden geladen …</div></div>
+                </article>
+            </section>
+
+            <section id="content">
+                <div class="section-heading">
+                    <div><h2>Social-Media &amp; Content-Generator</h2><p>Branchenneutrale Textentwürfe für deine Angebote · Veröffentlichung bleibt manuell</p></div>
+                </div>
+                <div class="main-grid">
+                    <article class="card">
+                        <div class="card-header">
+                            <div><h3 class="card-title">Content-Entwurf erstellen</h3><p class="card-description">Erstellt einen Textentwurf und legt ihn in der Marketing-Queue ab. Es findet kein automatisches Social-Media-Posting statt.</p></div>
+                            <span class="pill">Entwurfsmodus</span>
+                        </div>
+                        <form class="mission-form" id="content-form">
+                            <div class="form-grid">
+                                <div><label for="content-platform">Plattform</label><select id="content-platform" name="platform"><option>Instagram</option><option>TikTok</option><option selected>LinkedIn</option><option>X</option></select></div>
+                                <div><label for="content-industry">Branche / Thema</label><input id="content-industry" name="industry" maxlength="120" placeholder="z. B. Fitness, Beratung, Handwerk"></div>
+                                <div><label for="content-offer">Angebot</label><input id="content-offer" name="offer" maxlength="120" placeholder="z. B. Coaching, Software, Dienstleistung"></div>
+                                <div><label for="content-audience">Zielgruppe</label><input id="content-audience" name="audience" maxlength="120" placeholder="z. B. Gründerinnen und kleine Teams"></div>
+                            </div>
+                            <div class="form-bottom"><span class="form-hint">Prüfe Aussagen und Angebot vor der Veröffentlichung.</span><button class="button" id="generate-button" type="submit">Entwurf generieren <span aria-hidden="true">→</span></button></div>
+                            <p class="notice" id="queue-notice" role="status" aria-live="polite"></p>
+                        </form>
+                    </article>
+                    <article class="card">
+                        <div class="card-header"><div><h3 class="card-title">Content-Workflow</h3><p class="card-description">Generierte Texte landen als Draft in derselben Live-Warteschlange.</p></div><span class="pill neutral">Keine Veröffentlichung</span></div>
+                        <div class="queue-list">
+                            <div class="queue-item"><div class="queue-meta"><strong>Instagram &amp; TikTok</strong><span>Textentwurf</span></div><p class="queue-content">Kurze, plattformgerechte Caption mit Hashtags. Medien, Faktencheck und Veröffentlichung ergänzt du vorab.</p></div>
+                            <div class="queue-item"><div class="queue-meta"><strong>LinkedIn &amp; X</strong><span>Textentwurf</span></div><p class="queue-content">Branchenneutraler Value-Pitch mit klarer Zielgruppe und sachlichem Call-to-Action.</p></div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="sales">
+                <div class="section-heading">
+                    <div><h2>Sales &amp; Inbound</h2><p>Marketing-Entwürfe und operative Übergaben im Blick</p></div>
+                    <button class="button ghost" id="queue-refresh" type="button">Warteschlange laden</button>
+                </div>
+                <div class="main-grid">
+                    <article class="card">
+                        <div class="card-header">
+                            <div><h3 class="card-title">Marketing-Queue</h3><p class="card-description">Entwürfe aus dem Agent-Kernel · Live-Daten aus <code>/api/marketing-queue</code></p></div>
+                        </div>
+                        <div class="queue-list" id="queue-list"><div class="empty-state">Warteschlange wird geladen …</div></div>
+                    </article>
+                    <article class="card" id="human-loop">
+                        <div class="card-header">
+                            <div><h3 class="card-title">Auftrag an den lokalen Runner</h3><p class="card-description">Im lokalen Modus werden nur begrenzte, deterministische Daten-Tasks ausgeführt – keine freie KI-Generierung, Shell-Befehle oder Codeausführung.</p></div>
+                            <span class="pill">Human-in-the-Loop</span>
+                        </div>
+                        <form class="mission-form" id="mission-form">
+                            <label for="mission-input">Lokaler Auftrag</label>
+                            <textarea id="mission-input" name="mission" maxlength="4000" required placeholder="/local status&#10;/local draft development -- Thema&#10;/local draft marketing -- Thema&#10;/local list agent-input&#10;/local read agent-input/datei.txt&#10;/local write agent-output/bericht.txt -- Berichtstext"></textarea>
+                            <p class="card-description">Lesen nur aus <code>data/agent-input</code>, <code>data/agent-output</code> und <code>data/reports</code>; neue Dateien ausschließlich unter <code>data/agent-output</code>.</p>
+                            <div class="form-bottom"><span class="form-hint">Bis zu 4.000 Zeichen · lokal gespeichert</span><button class="button" id="mission-button" type="submit">Mission übergeben <span aria-hidden="true">→</span></button></div>
+                            <p class="notice" id="mission-notice" role="status" aria-live="polite"></p>
+                        </form>
+                        <div class="section-heading">
+                            <div><h3 class="card-title">Agent-Ausführung</h3><p class="card-description">Status und Ergebnis aus der Runner-Queue · Aktualisierung alle 5 Sekunden</p></div>
+                            <button class="button ghost" id="mission-refresh" type="button">Status laden</button>
+                        </div>
+                        <p class="notice" id="mission-runner-notice" role="status" aria-live="polite"></p>
+                        <div class="form-bottom" id="runner-controls" hidden>
+                            <span class="form-hint">Nur Pause/Fortsetzen; Budget und Infrastruktur werden hier nicht geändert.</span>
+                            <div>
+                                <button class="button secondary" id="runner-pause" type="button">Runner pausieren</button>
+                                <button class="button" id="runner-resume" type="button">Runner fortsetzen</button>
+                            </div>
+                        </div>
+                        <p class="notice" id="runner-control-notice" role="status" aria-live="polite"></p>
+                        <div class="queue-list" id="mission-list"><div class="empty-state">Missionen werden geladen …</div></div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="avatars">
+                <div class="section-heading"><div><h2>KI-Avatare &amp; Sprach-Agenten</h2><p>Integrationsstatus für Gespräche, Lead-Qualifizierung und Vertriebsassistenz</p></div></div>
+                <div class="module-grid">
+                    <article class="card module-card"><span class="module-icon">◉</span><h3>KI-Avatare</h3><p>In diesem Projekt ist kein Avatar- oder Videoanbieter konfiguriert. Erstelle keine Videos oder Werbeaussagen, bevor eine Integration und Freigabe eingerichtet sind.</p><span class="pill neutral">Anbieter nicht angebunden</span></article>
+                    <article class="card module-card"><span class="module-icon">♫</span><h3>Sprach-Agenten</h3><p>Telefonie, Spracherkennung und Sprachsynthese sind nicht angebunden. Es werden keine Anrufe gestartet und keine Interessenten automatisiert kontaktiert.</p><span class="pill neutral">Telefonie nicht angebunden</span></article>
+                    <article class="card module-card"><span class="module-icon">◎</span><h3>Lead-Qualifizierung</h3><p>Eine Lead-Datenquelle und ein CRM-Workflow sind nicht konfiguriert. Nutze die Mission-Übergabe, um einen menschlich überprüfbaren nächsten Schritt zu erfassen.</p><a class="button secondary" href="#human-loop">Mission übergeben</a></article>
+                </div>
+            </section>
+
+            <section id="developer-agent">
+                <div class="section-heading">
+                    <div><h2>Developer-Agent · lokaler Execution-Core</h2><p>Deterministische lokale Aufgaben über die persistente Task-Queue · kein Modellanbieter</p></div>
+                    <span class="pill">Nur /local-Befehle</span>
+                </div>
+                <article class="card">
+                    <div class="card-header">
+                        <div><h3 class="card-title">Lokale Aufgabe einreihen</h3><p class="card-description">Der native Executor akzeptiert ausschließlich begrenzte /local-Befehle. Er generiert oder verändert keinen Quellcode und führt keine Shell-Befehle aus.</p></div>
+                    </div>
+                    <form class="mission-form" id="developer-form">
+                        <label for="developer-command">Lokaler Befehl</label>
+                        <textarea id="developer-command" name="command" maxlength="4000" required placeholder="/local status"></textarea>
+                        <p class="card-description">Unterstützt: <code>/local status</code>, <code>/local draft development -- Thema</code>, <code>/local draft marketing -- Thema</code>, <code>/local list</code>, <code>/local read</code> und neue Dateien ausschließlich unter <code>data/agent-output/</code>. Entwürfe sind regelbasierte Vorlagen und werden weder ausgeführt noch veröffentlicht.</p>
+                        <div class="form-bottom"><span class="form-hint">Aufgaben werden lokal und transaktional in die Task-Queue übernommen.</span><button class="button" id="developer-button" type="submit">Lokale Task einreihen <span aria-hidden="true">→</span></button></div>
+                        <p class="notice" id="developer-notice" role="status" aria-live="polite"></p>
+                    </form>
+                    <pre class="patch-output" id="developer-output" aria-label="Task-Status" hidden></pre>
+                </article>
+            </section>
+
+            <section id="services">
+                <div class="section-heading"><div><h2>Coaching &amp; Dienstleistungs-Hub</h2><p>Universelle Angebotsverwaltung mit serverseitig gepflegten Preisen</p></div></div>
+                <div class="main-grid">
+                    <article class="card">
+                        <div class="card-header"><div><h3 class="card-title">Konfigurierte digitale Angebote</h3><p class="card-description">Wähle ein freigegebenes Produkt aus dem Stripe-Katalog. Preis und Produktdetails werden serverseitig geprüft.</p></div><span class="pill neutral" id="catalog-status">Katalog wird geladen</span></div>
+                        <div class="mission-form">
+                            <label for="product-select">Angebot</label>
+                            <select id="product-select" disabled><option value="">Konfigurierte Angebote werden geladen …</option></select>
+                            <p class="card-description" id="product-description">Zahlungen werden nach einem geprüften Stripe-Webhook verbucht. Die anschließende Bereitstellung bleibt manuell, bis Kundenkonto und Produktzugang eingerichtet sind.</p>
+                            <div class="form-bottom"><span class="form-hint" id="product-price">Preis aus dem konfigurierten Katalog</span><button class="button" id="checkout-button" type="button" disabled>Zum sicheren Checkout <span aria-hidden="true">→</span></button></div>
+                            <p class="notice" id="checkout-notice" role="status" aria-live="polite"></p>
+                        </div>
+                    </article>
+                    <article class="card">
+                        <div class="card-header"><div><h3 class="card-title">Angebotsfelder</h3><p class="card-description">Der Hub ist branchenneutral. Lege nur Leistungen an, die tatsächlich erbracht werden.</p></div></div>
+                        <div class="queue-list">
+                            <div class="queue-item"><div class="queue-meta"><strong>Zahlung bestätigt</strong><span>Webhook</span></div><p class="queue-content">Bezahlte Checkout-Sitzungen werden signaturgeprüft, idempotent protokolliert und in den Umsatzstatistiken erfasst.</p></div>
+                            <div class="queue-item"><div class="queue-meta"><strong>Leistung ausliefern</strong><span>Manuelle Prüfung</span></div><p class="queue-content">Kundenkonto, Lizenzzustellung und Produktbereitstellung sind noch nicht angebunden. Eine Zahlung schaltet daher keinen automatischen Zugang frei.</p></div>
+                            <div class="queue-item"><div class="queue-meta"><strong>Coaching &amp; Beratung</strong><span>Konfigurierbar</span></div><p class="queue-content">Einzelsitzungen und Programme erst nach klarer Beschreibung, Kapazitäts- und Preisprüfung anbieten.</p></div>
+                            <div class="queue-item"><div class="queue-meta"><strong>Digitale Produkte &amp; Agenten-Lizenzen</strong><span>Konfigurierbar</span></div><p class="queue-content">Zugang, Laufzeit, Support und Rückerstattungsbedingungen müssen für jedes Produkt festgelegt sein.</p></div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section id="compliance">
+                <div class="section-heading"><div><h2>Governance &amp; Schutzbereiche</h2><p>Transparenter Integrationsstatus statt nicht verifizierter Kennzahlen</p></div></div>
+                <div class="module-grid">
+                    <article class="card module-card"><span class="module-icon">◇</span><h3>IP / Compliance</h3><p>Die Oberfläche stellt keine rechtliche oder IP-Prüfung dar. Compliance-Regeln sind noch nicht über eine API angebunden.</p><span class="pill neutral">Nicht angebunden</span></article>
+                    <article class="card module-card" id="token-guard"><span class="module-icon">◉</span><h3>Token-Guard</h3><p>Keine Token-Verbrauchs- oder Budgetquelle konfiguriert. Kosten werden daher nicht geschätzt oder als Echtzeitwert angezeigt.</p><span class="pill neutral">Monitoring ausstehend</span></article>
+                    <article class="card module-card"><span class="module-icon">◎</span><h3>Freigaben</h3><p>Missionen werden in der lokalen Warteschlange protokolliert. Ein separater Freigabe-Workflow ist derzeit nicht angebunden.</p><span class="pill neutral">Warteschlange aktiv</span></article>
+                </div>
+            </section>
+
+            <section id="audit">
+                <div class="section-heading">
+                    <div><h2>Audit-Protokoll</h2><p>Letzte Kernel-Aktivitäten aus dem lokalen Audit-Log · Kein manipulationssicheres WORM-System</p></div>
+                    <button class="button ghost" id="audit-refresh" type="button">Protokoll laden</button>
+                </div>
+                <article class="card">
+                    <div class="card-header"><div><h3 class="card-title">Letzte Ereignisse</h3><p class="card-description">Quelle: <code>/api/audit-log</code></p></div><span class="pill neutral" id="audit-count">0 Einträge</span></div>
+                    <div class="audit-list" id="audit-list"><div class="empty-state">Audit-Protokoll wird geladen …</div></div>
+                    <p class="notice" id="audit-notice" role="status" aria-live="polite"></p>
+                </article>
+            </section>
+
+            <section id="settings">
+                <div class="section-heading"><div><h2>System &amp; Integrationen</h2><p>Verfügbare Backend-Verbindungen und Funktionsumfang</p></div></div>
+                <div class="module-grid">
+                    <article class="card module-card"><span class="module-icon">⌘</span><h3>Agent-Kernel</h3><p>Marketing-Entwürfe und Missionen werden lokal verarbeitet und in SQLite gespeichert.</p><span class="pill"><span class="dot"></span> Verbunden</span></article>
+                    <article class="card module-card"><span class="module-icon">↗</span><h3>Marketing-Queue</h3><p>Entwürfe lesen und neue Marketing-Inhalte über die vorhandene Kernel-Integration erstellen.</p><span class="pill"><span class="dot"></span> Verbunden</span></article>
+                    <article class="card module-card"><span class="module-icon">€</span><h3>Stripe Checkout</h3><p>Checkout erfordert einen Stripe-Schlüssel und einen geprüften Produktkatalog. Zahlungsabwicklung ersetzt keine Produktbereitstellung oder Supportprozesse.</p><a class="button secondary" href="#services">Angebote verwalten</a></article>
+                </div>
+            </section>
+            <footer class="footer">Natur Vitale Enterprise Agent OS · Lokales Dashboard. Nicht verfügbare Integrationen und Kennzahlen werden gekennzeichnet, nicht simuliert.</footer>
+        </div>
+    </main>
+</div>
+<script>
+    const $ = (selector) => document.querySelector(selector);
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[character]);
+
+    async function api(path, options = {}) {
+        const apiPath = path.startsWith('/api/') ? `/agenten-intern${path}` : path;
+        const response = await fetch(apiPath, {
+            ...options,
+            headers: { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers }
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.success === false) {
+            throw new Error(data.error || `Anfrage fehlgeschlagen (HTTP ${response.status}).`);
+        }
+        return data;
+    }
+
+    function setNotice(element, message, type = '') {
+        element.textContent = message;
+        element.className = `notice${type ? ` ${type}` : ''}`;
+    }
+
+    async function loadStats() {
+        try {
+            const data = await api('/api/dashboard-stats');
+            $('#agents-count').textContent = data.stats.agentCount;
+            $('#agents-pill').textContent = `${data.stats.pendingMissions} offen`;
+            const revenue = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' })
+                .format(data.stats.revenueCents / 100);
+            $('#revenue-metric').textContent = revenue;
+            $('#revenue-help').textContent = `${data.stats.paidOrders} bestätigte Stripe-Zahlung(en)`;
+            $('#orders-count').textContent = data.stats.paidOrders;
+            $('#fulfillment-count').textContent = `Bereitstellung ausstehend: ${data.stats.pendingFulfillment}`;
+            $('#total-revenue').textContent = revenue;
+            $('#system-status').textContent = 'ONLINE';
+            $('#system-metric').textContent = 'ONLINE';
+            $('#system-help').textContent = `${data.stats.pendingMissions} offene Missionen · ${data.stats.marketingDrafts} Marketing-Entwürfe`;
+            $('#sidebar-status').textContent = 'System online';
+            $('#top-dot').classList.remove('offline');
+            $('#sidebar-dot').classList.remove('offline');
+        } catch (error) {
+            $('#system-status').textContent = 'OFFLINE';
+            $('#system-metric').textContent = 'OFFLINE';
+            $('#system-help').textContent = error.message;
+            $('#revenue-metric').textContent = 'Nicht verfügbar';
+            $('#total-revenue').textContent = '—';
+            $('#orders-count').textContent = '—';
+            $('#sidebar-status').textContent = 'Backend nicht erreichbar';
+            $('#top-dot').classList.add('offline');
+            $('#sidebar-dot').classList.add('offline');
+        }
+    }
+
+    async function loadQueue() {
+        const list = $('#queue-list');
+        try {
+            const data = await api('/api/marketing-queue');
+            const queue = Array.isArray(data.queue) ? data.queue : [];
+            if (!queue.length) {
+                list.innerHTML = '<div class="empty-state">Noch keine Marketing-Entwürfe vorhanden.</div>';
+                return;
+            }
+            list.innerHTML = queue.slice(0, 8).map((item) => `
+                <article class="queue-item">
+                    <div class="queue-meta"><span>${escapeHtml(item.platform || 'Marketing')}</span><span class="pill neutral">${escapeHtml(item.status || 'draft')}</span></div>
+                    <p class="queue-content">${escapeHtml(item.content)}</p>
+                    <div class="queue-meta"><span>Eintrag #${escapeHtml(item.id)}</span><span>${escapeHtml(item.created_at || '')}</span></div>
+                </article>`).join('');
+            setNotice($('#queue-notice'), `${queue.length} Entwurf/Entwürfe in der Warteschlange.`);
+        } catch (error) {
+            list.innerHTML = '<div class="empty-state">Die Marketing-Queue konnte nicht geladen werden.</div>';
+            setNotice($('#queue-notice'), error.message, 'error');
+        }
+    }
+
+    async function loadAudit() {
+        const list = $('#audit-list');
+        try {
+            const data = await api('/api/audit-log');
+            const entries = Array.isArray(data.entries) ? data.entries : [];
+            $('#audit-count').textContent = `${entries.length} Einträge`;
+            list.innerHTML = entries.length ? entries.map((entry) => `
+                <article class="audit-item">
+                    <div class="audit-meta"><strong>${escapeHtml(entry.action)}</strong><span>${escapeHtml(entry.timestamp)}</span></div>
+                    <p class="queue-content">${escapeHtml(entry.details || '')}</p>
+                </article>`).join('') : '<div class="empty-state">Noch keine Audit-Ereignisse vorhanden.</div>';
+            setNotice($('#audit-notice'), '');
+        } catch (error) {
+            list.innerHTML = '<div class="empty-state">Das Audit-Protokoll konnte nicht geladen werden.</div>';
+            setNotice($('#audit-notice'), error.message, 'error');
+        }
+    }
+
+    async function loadPortalErrors() {
+        const list = $('#portal-error-list');
+        try {
+            const data = await api('/api/portal-errors');
+            const events = Array.isArray(data.events) ? data.events : [];
+            list.innerHTML = events.length ? events.map((event) => `
+                <article class="audit-item">
+                    <div class="audit-meta"><strong>${escapeHtml(event.requestPath)}</strong><span>${new Date(event.createdAt).toLocaleString('de-DE')}</span></div>
+                    <p class="queue-content">${escapeHtml(event.message)}</p>
+                    ${event.stack ? `<details><summary>Stacktrace</summary><pre>${escapeHtml(event.stack)}</pre></details>` : ''}
+                </article>`).join('') : '<div class="empty-state">Keine Portal-Fehler protokolliert.</div>';
+            setNotice($('#errors-notice'), '');
+        } catch (error) {
+            list.innerHTML = '<div class="empty-state">Portal-Fehler konnten nicht geladen werden.</div>';
+            setNotice($('#errors-notice'), error.message, 'error');
+        }
+    }
+
+    async function loadMissions() {
+        const list = $('#mission-list');
+        try {
+            const data = await api('/api/missions');
+            const missions = Array.isArray(data.missions) ? data.missions : [];
+            const statuses = {
+                pending: 'Wartet auf Runner',
+                queued: 'In Queue',
+                running: 'In Bearbeitung',
+                completed: 'Erfolgreich abgeschlossen',
+                failed: 'Fehler'
+            };
+            list.innerHTML = missions.length ? missions.map((item) => `
+                <article class="queue-item">
+                    <div class="queue-meta"><strong>Mission #${escapeHtml(item.id)}</strong><span class="pill neutral">${escapeHtml(statuses[item.status] || item.status)}</span></div>
+                    <p class="queue-content">${escapeHtml(item.mission)}</p>
+                    ${item.error ? `<p class="notice error">${escapeHtml(item.error)}</p>` : ''}
+                    ${item.result ? `<p class="queue-content"><strong>Agent-Ergebnis:</strong><br>${escapeHtml(item.result)}</p>` : ''}
+                    <div class="queue-meta"><span>${escapeHtml(item.createdAt || '')}</span><span>${item.runnerTaskId ? `Task ${escapeHtml(item.runnerTaskId)}` : ''}</span></div>
+                </article>`).join('') : '<div class="empty-state">Noch keine Missionen eingereicht.</div>';
+            if (data.runnerAvailable) {
+                const control = data.runnerControl;
+                const localMode = data.runnerExecutionMode === 'local-deterministic';
+                $('#runner-controls').hidden = !data.runnerControlAvailable;
+                $('#runner-pause').hidden = Boolean(control?.paused);
+                $('#runner-resume').hidden = !control?.paused;
+                $('#runner-resume').disabled = !control?.infrastructureReady
+                    || (!localMode && (control?.apiStatus === 'blocked'
+                        || Number(control?.apiBudgetCents || 0) <= Number(control?.apiSpentCents || 0)));
+                if (control?.paused || !control?.infrastructureReady) {
+                    setNotice($('#mission-runner-notice'), localMode
+                        ? 'Lokaler Runner verbunden, Ausführung aber pausiert. Prüfe die lokale Freigabe.'
+                        : 'Runner verbunden, Ausführung aber pausiert. Prüfe Freigabe und festes API-Budget.', 'error');
+                } else if (!localMode && control?.apiStatus === 'blocked') {
+                    setNotice($('#mission-runner-notice'), 'Runner verbunden, aber der API-Anbieter ist blockiert. Missionen bleiben in der Queue.', 'error');
+                } else {
+                    setNotice($('#mission-runner-notice'), localMode
+                        ? 'Lokaler Runner aktiv; keine Modell- oder API-Aufrufe. Status wird automatisch aktualisiert.'
+                        : 'Runner verbunden. Status wird automatisch aktualisiert.');
+                }
+            } else {
+                $('#runner-controls').hidden = true;
+                setNotice($('#mission-runner-notice'), data.runnerError || 'Runner nicht erreichbar.', 'error');
+            }
+        } catch (error) {
+            $('#runner-controls').hidden = true;
+            list.innerHTML = '<div class="empty-state">Der Missionen-Status konnte nicht geladen werden.</div>';
+            setNotice($('#mission-runner-notice'), error.message, 'error');
+        }
+    }
+
+    let checkoutReady = false;
+    async function loadProducts() {
+        const select = $('#product-select');
+        const button = $('#checkout-button');
+        try {
+            const data = await api('/api/products');
+            checkoutReady = data.checkoutReady;
+            if (!data.products.length) {
+                select.innerHTML = '<option value="">Noch keine Angebote konfiguriert</option>';
+                $('#catalog-status').textContent = 'Katalog leer';
+                $('#product-description').textContent = data.configurationIssues?.join(' ')
+                    || 'Hinterlege ein geprüftes Produkt in STRIPE_PRODUCT_CATALOG. Unterstützt werden Preise von 99 € bis 30.000 €.';
+                button.disabled = true;
+                return;
+            }
+            select.innerHTML = data.products.map((product) => `<option value="${escapeHtml(product.id)}">${escapeHtml(product.name)} · ${new Intl.NumberFormat('de-DE', { style: 'currency', currency: product.currency.toUpperCase() }).format(product.unitAmountCents / 100)}</option>`).join('');
+            select.disabled = false;
+            button.disabled = !checkoutReady;
+            $('#catalog-status').textContent = checkoutReady
+                ? 'Stripe & Webhook bereit'
+                : data.webhookReady ? 'Checkout nicht bereit' : 'Webhook fehlt';
+            $('#product-description').textContent = checkoutReady
+                ? 'Der Checkout wird bei Stripe erstellt. Bestätigte Zahlungen werden per Webhook verbucht; Produktzugang und Bereitstellung bleiben manuell.'
+                : data.configurationIssues?.join(' ')
+                    || 'Prüfe Stripe-Schlüssel, Webhook und öffentliche URL.';
+            updateSelectedProduct();
+        } catch (error) {
+            select.innerHTML = '<option value="">Produktkatalog nicht verfügbar</option>';
+            $('#catalog-status').textContent = 'Konfigurationsfehler';
+            $('#product-description').textContent = error.message;
+            button.disabled = true;
+        }
+    }
+
+    function updateSelectedProduct() {
+        const select = $('#product-select');
+        const option = select.selectedOptions[0];
+        $('#product-price').textContent = option ? `Ausgewähltes Angebot: ${option.textContent}` : 'Kein Angebot ausgewählt';
+    }
+
+    $('#refresh-button').addEventListener('click', () => Promise.all([loadStats(), loadQueue(), loadAudit(), loadProducts(), loadMissions(), loadPortalErrors()]));
+    $('#queue-refresh').addEventListener('click', loadQueue);
+    $('#audit-refresh').addEventListener('click', loadAudit);
+    $('#mission-refresh').addEventListener('click', () => Promise.all([loadMissions(), loadStats()]));
+    async function updateRunnerControl(action) {
+        const pause = $('#runner-pause');
+        const resume = $('#runner-resume');
+        pause.disabled = true;
+        resume.disabled = true;
+        setNotice($('#runner-control-notice'), action === 'pause' ? 'Runner wird pausiert …' : 'Runner wird fortgesetzt …');
+        try {
+            await api('/api/runner/control', {
+                method: 'POST',
+                body: JSON.stringify({ action })
+            });
+            setNotice($('#runner-control-notice'), action === 'pause' ? 'Runner pausiert.' : 'Runner fortgesetzt.', 'success');
+            await loadMissions();
+        } catch (error) {
+            setNotice($('#runner-control-notice'), error.message, 'error');
+        } finally {
+            pause.disabled = false;
+            resume.disabled = false;
+        }
+    }
+    $('#runner-pause').addEventListener('click', () => updateRunnerControl('pause'));
+    $('#runner-resume').addEventListener('click', () => updateRunnerControl('resume'));
+    $('#content-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = $('#generate-button');
+        button.disabled = true;
+        setNotice($('#queue-notice'), 'Content-Entwurf wird erstellt …');
+        try {
+            const data = await api('/api/kernel', {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'generate_marketing',
+                    platform: $('#content-platform').value,
+                    industry: $('#content-industry').value,
+                    offer: $('#content-offer').value,
+                    audience: $('#content-audience').value
+                })
+            });
+            setNotice($('#queue-notice'), data.message || 'Marketing-Entwurf erstellt.', 'success');
+            await Promise.all([loadQueue(), loadStats(), loadAudit()]);
+        } catch (error) {
+            setNotice($('#queue-notice'), error.message, 'error');
+        } finally {
+            button.disabled = false;
+        }
+    });
+    $('#product-select').addEventListener('change', updateSelectedProduct);
+    $('#mission-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = $('#mission-button');
+        const mission = $('#mission-input').value.trim();
+        if (!mission) {
+            setNotice($('#mission-notice'), 'Bitte beschreibe zuerst die Mission.', 'error');
+            return;
+        }
+        button.disabled = true;
+        setNotice($('#mission-notice'), 'Mission wird übergeben …');
+        try {
+            const data = await api('/api/kernel', {
+                method: 'POST',
+                body: JSON.stringify({ action: 'submit_mission', mission })
+            });
+            $('#mission-input').value = '';
+            const submissionNotice = data.dispatchError
+                ? `Mission #${data.mission.id} lokal gespeichert. Runner nicht erreichbar; automatische Wiederholung aktiv.`
+                : `Mission #${data.mission.id} an den Agent-Runner übergeben.`;
+            setNotice($('#mission-notice'), submissionNotice, 'success');
+            await Promise.all([loadMissions(), loadStats(), loadAudit()]);
+        } catch (error) {
+            setNotice($('#mission-notice'), error.message, 'error');
+            await Promise.all([loadMissions(), loadStats(), loadAudit()]);
+        } finally {
+            button.disabled = false;
+        }
+    });
+    $('#developer-form').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const button = $('#developer-button');
+        const command = $('#developer-command').value.trim();
+        button.disabled = true;
+        $('#developer-output').hidden = true;
+        setNotice($('#developer-notice'), 'Lokale Task wird in die persistente Queue übernommen …');
+        try {
+            const data = await api('/api/developer/task', {
+                method: 'POST',
+                body: JSON.stringify({ command })
+            });
+            $('#developer-output').textContent = JSON.stringify({
+                taskId: data.task.id,
+                status: data.task.status,
+                mode: data.mode,
+                externalModelCalls: data.externalModelCalls
+            }, null, 2);
+            $('#developer-output').hidden = false;
+            setNotice($('#developer-notice'), 'Lokale Task wurde in die Queue übernommen.', 'success');
+        } catch (error) {
+            setNotice($('#developer-notice'), error.message, 'error');
+        } finally {
+            button.disabled = false;
+        }
+    });
+    $('#checkout-button').addEventListener('click', async (event) => {
+        const button = event.currentTarget;
+        const scrollPosition = window.scrollY;
+        button.disabled = true;
+        setNotice($('#checkout-notice'), 'Stripe Checkout wird vorbereitet …');
+        try {
+            if (!checkoutReady) throw new Error('Stripe Checkout ist nicht konfiguriert.');
+            const productId = $('#product-select').value;
+            const data = await api('/api/create-checkout-session', {
+                method: 'POST',
+                body: JSON.stringify({ productId })
+            });
+            if (!data.url) throw new Error('Stripe hat keine Checkout-URL zurückgegeben.');
+            const checkoutUrl = new URL(data.url);
+            if (checkoutUrl.protocol !== 'https:' || checkoutUrl.hostname !== 'checkout.stripe.com') {
+                throw new Error('Stripe hat eine ungültige Checkout-Adresse zurückgegeben.');
+            }
+            window.location.href = checkoutUrl.href;
+        } catch (error) {
+            setNotice($('#checkout-notice'), error.message, 'error');
+            window.scrollTo(0, scrollPosition);
+        } finally {
+            button.disabled = false;
+        }
+    });
+    document.querySelectorAll('.nav-item').forEach((link) => {
+        link.addEventListener('click', () => {
+            document.querySelectorAll('.nav-item').forEach((item) => item.classList.remove('active'));
+            link.classList.add('active');
+        });
+    });
+
+    $('#errors-refresh').addEventListener('click', loadPortalErrors);
+    Promise.all([loadStats(), loadQueue(), loadAudit(), loadProducts(), loadMissions(), loadPortalErrors()]);
+    window.setInterval(() => Promise.all([loadMissions(), loadStats()]), 5000);
+</script>
+</body>
+</html>

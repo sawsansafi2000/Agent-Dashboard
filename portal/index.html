@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#09110f">
+    <title>Natur Vitale | Ideen- und Workflow-Portal</title>
+    <style>
+        :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #09110f; color: #eef5ef; }
+        * { box-sizing: border-box; }
+        body { min-width: 320px; min-height: 100vh; margin: 0; }
+        header { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px max(22px, calc((100% - 1120px) / 2)); border-bottom: 1px solid #24352c; }
+        .brand { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 750; }
+        .mark { display: grid; width: 35px; height: 35px; place-items: center; border: 1px solid #385443; border-radius: 11px; background: #16271d; color: #a7efbd; font-size: 18px; }
+        nav { display: flex; gap: 9px; }
+        button, .button { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; padding: 9px 13px; border: 1px solid #42644e; border-radius: 8px; background: #a7efbd; color: #102017; cursor: pointer; font: inherit; font-size: 12px; font-weight: 750; text-decoration: none; }
+        button.secondary, .button.secondary { border-color: #33493b; background: #17241d; color: #dce8df; }
+        button:disabled { cursor: wait; opacity: .6; }
+        main { width: min(100% - 40px, 980px); margin: 0 auto; padding: 50px 0 80px; }
+        .hero { max-width: 730px; margin: 40px auto 28px; text-align: center; }
+        .eyebrow { color: #72d9a1; font-size: 11px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
+        h1 { margin: 13px 0 12px; font-size: clamp(30px, 5vw, 48px); letter-spacing: -.05em; }
+        h2 { margin: 0 0 8px; font-size: 20px; letter-spacing: -.03em; }
+        p { color: #a5b4aa; font-size: 14px; line-height: 1.65; }
+        .hero p { margin: 0 auto; max-width: 630px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 28px; }
+        .card { padding: 22px; border: 1px solid #24352c; border-radius: 13px; background: #111c18; }
+        .card p { margin: 8px 0 0; font-size: 13px; }
+        .panel { width: min(100%, 590px); margin: 36px auto 0; padding: 26px; border: 1px solid #24352c; border-radius: 14px; background: #111c18; }
+        label { display: block; margin: 14px 0 6px; color: #c4d2c8; font-size: 12px; font-weight: 650; }
+        input:not([type="checkbox"]), select { width: 100%; padding: 11px 12px; border: 1px solid #304138; border-radius: 8px; outline: none; background: #0d1712; color: #eef5ef; font: inherit; font-size: 13px; }
+        input[type="checkbox"] { width: auto; accent-color: #72d9a1; }
+        textarea { width: 100%; min-height: 82px; padding: 11px 12px; border: 1px solid #304138; border-radius: 8px; background: #0d1712; color: #eef5ef; font: inherit; font-size: 13px; resize: vertical; }
+        input:focus, select:focus { border-color: #72d9a1; }
+        .panel form button { width: 100%; margin-top: 17px; }
+        .notice { min-height: 19px; margin-top: 12px; color: #ff9a8b; font-size: 12px; }
+        .notice.ok { color: #a7efbd; }
+        .switch { margin-top: 16px; text-align: center; font-size: 12px; }
+        .switch a { color: #a7efbd; }
+        .idea { margin-top: 14px; }
+        .idea h3 { margin: 0 0 8px; color: #a7efbd; }
+        .idea li { margin: 6px 0; color: #c4d2c8; font-size: 12px; line-height: 1.5; }
+        .business-case { margin-top: 16px; padding: 14px; border: 1px solid #304138; border-radius: 9px; }
+        .business-case h4 { margin: 0 0 8px; }
+        .business-case p { margin: 6px 0; font-size: 12px; }
+        .social-platforms { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+        .social-platforms label { display: flex; align-items: center; gap: 6px; margin: 5px 0; }
+        .sales-form { display: flex; align-items: end; gap: 8px; margin-top: 12px; }
+        .sales-form label { flex: 1; margin: 0; }
+        .sales-form button { width: auto; min-height: 38px; flex-shrink: 0; margin: 0 !important; }
+        .sales-list { margin-top: 10px; }
+        .sales-entry { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 7px 0; border-top: 1px solid #304138; font-size: 12px; }
+        .sales-entry button { min-height: 30px; padding: 5px 8px; }
+        .validation-progress { margin: 10px 0; color: #a7efbd; font-size: 12px; }
+        .validation-action { margin-top: 10px; padding: 12px; border: 1px solid #304138; border-radius: 8px; }
+        .validation-action h5 { margin: 0; font-size: 13px; }
+        .validation-action-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; align-items: end; margin-top: 8px; }
+        .validation-action-form label { margin: 0; }
+        .validation-action-form textarea { min-height: 42px; }
+        .validation-action-form button { min-height: 38px; }
+        .billing, .workflows { margin-top: 18px; }
+        .product { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 12px; padding: 14px; border: 1px solid #304138; border-radius: 9px; }
+        .product p { margin: 4px 0 0; font-size: 12px; }
+        .product button { flex-shrink: 0; }
+        .workflow { margin-top: 14px; }
+        .workflow h3 { margin: 0 0 8px; color: #a7efbd; }
+        .workflow li { margin: 6px 0; color: #c4d2c8; font-size: 12px; line-height: 1.5; }
+        .disclaimer { margin-top: 18px; padding: 12px; border-left: 2px solid #f0c77b; background: #19180f; color: #d4c99d; font-size: 11px; line-height: 1.5; }
+        .billing-links, .account-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+        .invoice { margin: 8px 0; padding: 10px; border: 1px solid #304138; border-radius: 8px; font-size: 12px; }
+        .entry-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .entry-actions button { min-height: 34px; }
+        .editor { margin-top: 12px; }
+        [hidden] { display: none !important; }
+        @media (max-width: 560px) { header { padding: 13px 16px; } main { width: min(100% - 28px, 980px); padding-top: 25px; } .panel { padding: 20px; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand"><span class="mark" aria-hidden="true">◈</span> Natur Vitale Studio</div>
+        <nav id="nav"></nav>
+    </header>
+    <main>
+        <section id="home">
+            <div class="hero">
+                <div class="eyebrow">Ideen pruefen. Schritt fuer Schritt starten.</div>
+                <h1>Von deiner Staerke zum ersten Geschaefts-Experiment.</h1>
+                <p>Erstelle strukturierte Geschaeftsideen und plane einen kleinen, manuellen Pilot. Du behaeltst die Kontrolle ueber jede externe Aktion.</p>
+            </div>
+            <div class="grid">
+                <article class="card"><h2>Ideen entwickeln</h2><p>Erhalte branchenspezifische Geschaeftsideen, Validierungsschritte und private Social-Entwürfe.</p></article>
+                <article class="card"><h2>Nachfrage pruefen</h2><p>Plane Gespraeche und einen begrenzten Pilot, bevor du investierst oder skalierst.</p></article>
+                <article class="card"><h2>Dein Arbeitsbereich</h2><p>Registriere dich, um Ideen privat zu speichern und jederzeit weiterzuentwickeln.</p></article>
+            </div>
+            <div class="disclaimer">Neue Entwürfe sind lokale Vorlagen, keine Finanz- oder Rechtsberatung. Einnahmen sind nicht garantiert. Generierte Abläufe werden nicht automatisch ausgeführt.</div>
+        </section>
+        <section class="panel" id="auth" hidden>
+            <h2 id="auth-title">Anmelden</h2>
+            <p id="auth-description">Melde dich in deinem persoenlichen Arbeitsbereich an.</p>
+            <form id="auth-form">
+                <label id="email-label" for="email">E-Mail</label>
+                <input id="email" name="email" type="email" autocomplete="email" maxlength="254" required>
+                <label id="password-label" for="password">Passwort</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" minlength="12" maxlength="128" required>
+                <button id="auth-submit" type="submit">Anmelden</button>
+                <div class="notice" id="auth-notice" role="status" aria-live="polite"></div>
+            </form>
+            <div class="switch" id="auth-switch"></div>
+            <div class="billing-links" id="auth-extras">
+                <button class="secondary" id="resend-verification" type="button">Bestätigung erneut senden</button>
+                <button class="secondary" id="request-password-reset" type="button">Passwort vergessen?</button>
+            </div>
+            <div class="notice" id="auth-extra-notice" role="status" aria-live="polite"></div>
+        </section>
+        <section class="panel" id="dashboard" hidden>
+            <h2>Dein Ideen-Arbeitsbereich</h2>
+            <p id="welcome"></p>
+            <form id="idea-form">
+                <label for="topic">Thema oder Problem</label>
+                <input id="topic" name="topic" minlength="3" maxlength="120" placeholder="z. B. gesunde Mahlzeiten im Schichtdienst" required>
+                <label for="audience">Wunsch-Zielgruppe (optional)</label>
+                <input id="audience" name="audience" maxlength="120" placeholder="z. B. Pflegekraefte">
+                <label for="strengths">Deine Staerken (optional)</label>
+                <input id="strengths" name="strengths" maxlength="120" placeholder="z. B. Ernaehrungsberatung, Organisation">
+                <label for="industry">Branche</label>
+                <select id="industry" name="industry" required>
+                    <option value="gastronomy">Gastronomie</option>
+                    <option value="craft">Handwerk</option>
+                    <option value="ecommerce">E-Commerce</option>
+                    <option value="services">Dienstleistung</option>
+                    <option value="software">Software / SaaS</option>
+                    <option value="other">Andere Branche</option>
+                </select>
+                <h3>Dein Zielmarkt und deine Annahmen</h3>
+                <label for="market-country">Land / Zielmarkt</label>
+                <input id="market-country" name="marketCountry" minlength="2" maxlength="100" value="Deutschland" required>
+                <label for="currency">Währung (ISO-Code)</label>
+                <input id="currency" name="currency" minlength="3" maxlength="3" pattern="[A-Za-z]{3}" value="EUR" required>
+                <label for="unit-price">Preis pro Verkauf</label>
+                <input id="unit-price" name="unitPrice" type="number" min="0.01" max="1000000" step="any" placeholder="z. B. 49" required>
+                <label for="expected-monthly-sales">Angenommene Verkäufe pro Monat</label>
+                <input id="expected-monthly-sales" name="expectedMonthlySales" type="number" min="1" max="100000" step="1" placeholder="z. B. 10" required>
+                <label for="variable-cost">Variable Kosten pro Verkauf</label>
+                <input id="variable-cost" name="variableCostPerSale" type="number" min="0" max="1000000" step="any" placeholder="z. B. 12" required>
+                <label for="monthly-fixed-costs">Fixkosten pro Monat</label>
+                <input id="monthly-fixed-costs" name="monthlyFixedCosts" type="number" min="0" max="1000000" step="any" placeholder="z. B. 150" required>
+                <p>Nutze grobe, eigene Testannahmen. Die Rechnung ist keine Marktprognose und berücksichtigt keine Steuern oder Zahlungsanbietergebühren.</p>
+                <button id="idea-submit" type="submit">Ideen-Entwurf erstellen</button>
+                <div class="notice" id="idea-notice" role="status" aria-live="polite"></div>
+            </form>
+            <div class="disclaimer">Neue Entwürfe sind regelbasierte lokale Vorlagen, keine KI-Analyse oder Marktprognose. Sie werden privat in deinem Konto gespeichert und müssen geprüft und ergänzt werden. Umsätze werden manuell erfasst; Steuern werden nicht berechnet.</div>
+            <div class="disclaimer">Datenschutz: Dein Konto bietet einen Datenexport und eine Kontolöschung. Vor der Löschung aktiver Abonnements wird deren Kündigung angestoßen; gesetzliche Aufbewahrungspflichten und Daten bei externen Dienstleistern können abweichende Fristen haben. Sieh dir die jeweils gültigen Datenschutzinformationen an.</div>
+            <div id="ideas"></div>
+            <section class="card billing">
+                <h2>Premium-Funktionen</h2>
+                <p id="billing-status">Freischaltungen und Angebote werden geladen.</p>
+                <div id="entitlements"></div>
+                <div id="products"></div>
+                <p id="token-usage"></p>
+                <div class="billing-links" id="billing-links" hidden>
+                    <button class="secondary" id="billing-portal" type="button">Abo verwalten</button>
+                </div>
+                <div id="subscriptions"></div>
+                <div id="invoices"></div>
+                <div class="notice" id="billing-notice" role="status" aria-live="polite"></div>
+            </section>
+            <section class="card billing">
+                <h2>Deine Daten und dein Konto</h2>
+                <p>Du kannst deine gespeicherten Portal-Daten exportieren oder dein Konto einschließlich zugehöriger Portal-Daten löschen.</p>
+                <div class="account-actions">
+                    <button class="secondary" id="account-export" type="button">Daten exportieren</button>
+                    <button class="secondary" id="logout-other-sessions" type="button">Andere Sitzungen abmelden</button>
+                </div>
+                <form id="change-password-form">
+                    <label for="current-password">Aktuelles Passwort</label>
+                    <input id="current-password" type="password" autocomplete="current-password" required>
+                    <label for="new-password">Neues Passwort</label>
+                    <input id="new-password" type="password" minlength="12" maxlength="128" autocomplete="new-password" required>
+                    <button class="secondary" type="submit">Passwort ändern</button>
+                    <div class="notice" id="password-notice" role="status" aria-live="polite"></div>
+                </form>
+                <form id="account-delete-form">
+                    <label for="delete-password">Passwort zur Kontolöschung bestätigen</label>
+                    <input id="delete-password" type="password" autocomplete="current-password" required>
+                    <button class="secondary" type="submit">Konto und Daten löschen</button>
+                    <div class="notice" id="account-notice" role="status" aria-live="polite"></div>
+                </form>
+            </section>
+            <section class="card workflows">
+                <h2>Workflow-Vorlagen</h2>
+                <p id="workflow-access">Der Generator wird mit einem Premium-Kauf freigeschaltet.</p>
+                <form id="workflow-form" hidden>
+                    <label for="workflow-goal">Gewünschtes Ergebnis</label>
+                    <input id="workflow-goal" name="goal" minlength="3" maxlength="300" placeholder="z. B. neue Interessenten strukturiert nachfassen" required>
+                    <label for="workflow-audience">Zielgruppe (optional)</label>
+                    <input id="workflow-audience" name="audience" maxlength="120">
+                    <label for="workflow-constraints">Rahmenbedingungen (optional)</label>
+                    <input id="workflow-constraints" name="constraints" maxlength="300" placeholder="z. B. manuell, ohne externe Dienste">
+                    <button id="workflow-submit" type="submit">Workflow erstellen</button>
+                    <div class="notice" id="workflow-notice" role="status" aria-live="polite"></div>
+                </form>
+                <div id="workflows-list"></div>
+                <div class="disclaimer">Workflows sind Entwürfe. Du prüfst jeden Schritt selbst; das Portal führt keine Aktionen aus.</div>
+            </section>
+        </section>
+    </main>
+    <script>
+        const $ = (selector) => document.querySelector(selector);
+        const nav = $('#nav');
+
+        async function api(path, options = {}) {
+            const response = await fetch(path, {
+                credentials: 'same-origin',
+                ...options,
+                headers: { ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...options.headers }
+            });
+            const data = response.status === 204 ? {} : await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data.error || `Anfrage fehlgeschlagen (HTTP ${response.status}).`);
+            return data;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[char]);
+        }
+
+        function authLink(label, href, className = 'button secondary') {
+            const link = document.createElement('a');
+            link.className = className;
+            link.href = href;
+            link.textContent = label;
+            return link;
+        }
+
+        function renderAuth(mode) {
+            $('#home').hidden = true;
+            $('#dashboard').hidden = true;
+            $('#auth').hidden = false;
+            const isRegister = mode === 'register';
+            const isReset = mode === 'reset';
+            const isVerify = mode === 'verify';
+            $('#auth-title').textContent = isRegister ? 'Konto erstellen' : isReset ? 'Passwort zurücksetzen' : isVerify ? 'E-Mail bestätigen' : 'Anmelden';
+            $('#auth-description').textContent = isRegister
+                ? 'Ein Konto anlegen, um Ideen privat zu speichern.'
+                : isReset ? 'Vergib ein neues Passwort für dein Konto.'
+                    : isVerify ? 'Der Bestätigungslink wird geprüft.'
+                        : 'Melde dich in deinem persoenlichen Arbeitsbereich an.';
+            $('#auth-form').hidden = isVerify;
+            $('#email-label').hidden = isReset;
+            $('#email').hidden = isReset;
+            $('#email').required = !isReset;
+            $('#password-label').hidden = !isRegister && !isReset && !isVerify;
+            $('#password').hidden = !isRegister && !isReset && !isVerify;
+            $('#password').required = isRegister || isReset;
+            $('#password').autocomplete = isRegister || isReset ? 'new-password' : 'current-password';
+            $('#password').minLength = isRegister || isReset ? 12 : 1;
+            $('#auth-submit').textContent = isRegister ? 'Registrieren' : isReset ? 'Passwort ändern' : 'Anmelden';
+            $('#auth-extras').hidden = isReset || isVerify;
+            $('#auth-switch').hidden = isReset || isVerify;
+            $('#auth-switch').replaceChildren(
+                document.createTextNode(isRegister ? 'Schon registriert? ' : 'Noch kein Konto? '),
+                authLink(isRegister ? 'Anmelden' : 'Konto erstellen', isRegister ? '/login' : '/register', '')
+            );
+            nav.replaceChildren(authLink('Startseite', '/'));
+            $('#auth-notice').textContent = '';
+            $('#auth-extra-notice').textContent = '';
+            $('#auth-form').onsubmit = async event => {
+                event.preventDefault();
+                const button = $('#auth-submit');
+                button.disabled = true;
+                $('#auth-notice').className = 'notice';
+                try {
+                    if (isReset) {
+                        await api('/api/auth/password-reset/confirm', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                token: new URLSearchParams(location.search).get('token'),
+                                password: $('#password').value
+                            })
+                        });
+                        $('#auth-notice').textContent = 'Passwort geändert. Du kannst dich jetzt anmelden.';
+                        $('#auth-notice').className = 'notice ok';
+                        return;
+                    }
+                    const result = await api(`/api/auth/${isRegister ? 'register' : 'login'}`, {
+                        method: 'POST',
+                        body: JSON.stringify({ email: $('#email').value, password: $('#password').value })
+                    });
+                    if (isRegister) {
+                        $('#auth-notice').textContent = result.verificationRequired
+                            ? 'Konto angelegt. Bitte bestätige deine E-Mail-Adresse über den zugesandten Link.'
+                            : 'Registrierung erfolgreich.';
+                        $('#auth-notice').className = 'notice ok';
+                        $('#password').value = '';
+                    } else {
+                        location.assign('/dashboard');
+                    }
+                } catch (error) {
+                    $('#auth-notice').textContent = error.message;
+                } finally {
+                    button.disabled = false;
+                }
+            };
+            $('#resend-verification').onclick = async () => {
+                try {
+                    await api('/api/auth/resend-verification', {
+                        method: 'POST',
+                        body: JSON.stringify({ email: $('#email').value })
+                    });
+                    $('#auth-extra-notice').textContent = 'Falls ein unbestätigtes Konto existiert, wurde eine E-Mail versendet.';
+                    $('#auth-extra-notice').className = 'notice ok';
+                } catch (error) {
+                    $('#auth-extra-notice').textContent = error.message;
+                }
+            };
+            $('#request-password-reset').onclick = async () => {
+                try {
+                    await api('/api/auth/password-reset/request', {
+                        method: 'POST',
+                        body: JSON.stringify({ email: $('#email').value })
+                    });
+                    $('#auth-extra-notice').textContent = 'Falls ein Konto mit dieser Adresse existiert, erhältst du einen Link zum Zurücksetzen.';
+                    $('#auth-extra-notice').className = 'notice ok';
+                } catch (error) {
+                    $('#auth-extra-notice').textContent = error.message;
+                }
+            };
+            if (isVerify) {
+                api('/api/auth/verify-email', {
+                    method: 'POST',
+                    body: JSON.stringify({ token: new URLSearchParams(location.search).get('token') })
+                }).then(() => location.replace('/dashboard')).catch(error => {
+                    $('#auth-description').textContent = error.message;
+                    $('#auth-extras').hidden = false;
+                });
+            }
+        }
+
+        function formatMoney(value, currency) {
+            try {
+                return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(value);
+            } catch {
+                return `${value} ${currency}`;
+            }
+        }
+
+        function renderIdea(entry) {
+            const idea = entry.idea;
+            const businessCase = idea.commercialCase;
+            const validationActions = entry.validationActions || [];
+            const projection = businessCase?.monthlyProjection;
+            const assumptions = businessCase?.assumptions;
+            const summary = entry.salesSummary || { count: 0, revenue: 0, currency: businessCase?.currency };
+            const completedActions = validationActions.filter(action => action.status === 'done').length;
+            const validationActionsMarkup = validationActions.length ? `
+                <section class="business-case validation-plan">
+                    <h4>Dein Validierungsplan</h4>
+                    <p>Arbeite die Branchenschritte in kleinen Tests ab. Halte Ergebnis und Termin fest; das ist ein Plan, keine Erfolgs- oder Umsatzgarantie.</p>
+                    <p class="validation-progress" role="status">${completedActions} von ${validationActions.length} Schritten abgeschlossen</p>
+                    ${validationActions.map(action => `
+                        <article class="validation-action">
+                            <h5>${escapeHtml(action.actionText)}</h5>
+                            <form class="validation-action-form" data-validation-action data-action-id="${Number(action.id)}">
+                                <label>Status
+                                    <select name="status">
+                                        <option value="todo"${action.status === 'todo' ? ' selected' : ''}>Offen</option>
+                                        <option value="in_progress"${action.status === 'in_progress' ? ' selected' : ''}>In Arbeit</option>
+                                        <option value="done"${action.status === 'done' ? ' selected' : ''}>Erledigt</option>
+                                    </select>
+                                </label>
+                                <label>Termin
+                                    <input name="dueDate" type="date" value="${escapeHtml(action.dueDate || '')}">
+                                </label>
+                                <label>Ergebnis / Erkenntnis
+                                    <textarea name="resultNote" maxlength="500" placeholder="Was hast du gemessen oder gelernt?">${escapeHtml(action.resultNote || '')}</textarea>
+                                </label>
+                                <button type="submit">Fortschritt speichern</button>
+                            </form>
+                        </article>`).join('')}
+                </section>` : '';
+            const businessCaseMarkup = businessCase ? `
+                <section class="business-case">
+                    <h4>${escapeHtml(businessCase.industryLabel || 'Branche')} · Validierung und Annahmen · ${escapeHtml(businessCase.marketCountry)} (${escapeHtml(businessCase.currency)})</h4>
+                    <p><strong>Erste Kundengruppe:</strong> ${escapeHtml(idea.customerProfile)}</p>
+                    <p><strong>Nutzenversprechen:</strong> ${escapeHtml(idea.valueProposition)}</p>
+                    <p><strong>Zu testende Kennzahl:</strong> ${escapeHtml(idea.validationMetric)}</p>
+                    <p><strong>Branchentypische Kennzahlen zur eigenen Messung:</strong> ${businessCase.industryMetrics.map(escapeHtml).join(' · ')}</p>
+                    <p><strong>Branchenspezifische Validierung:</strong></p>
+                    <ul>${(idea.industryValidationSteps || []).map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ul>
+                    <p><strong>Steuerrahmen:</strong> ${businessCase.taxProfile?.status === 'reference_only'
+                        ? `Konfigurierter Umsatzsteuersatz: ${Number(businessCase.taxProfile.vatRatePercent)} % (nur Referenz, nicht in der Kalkulation berücksichtigt; geprüft am ${escapeHtml(businessCase.taxProfile.verifiedAt)} durch ${escapeHtml(businessCase.taxProfile.verifiedBy)}; <a href="${escapeHtml(businessCase.taxProfile.sourceUrl)}" rel="noopener noreferrer" target="_blank">Quelle</a>).`
+                        : 'Kein länderspezifisches Steuerprofil konfiguriert. Bitte lokale Steuerberatung hinzuziehen.'}</p>
+                    <p>Steuersätze hängen unter anderem von Leistungsart, Kundengruppe und Ausnahmen ab. Die Portalrechnung berechnet keine Steuer und ist keine Steuer- oder Rechtsberatung.</p>
+                    <p><strong>Pilotangebot (Entwurf, kein Checkout):</strong> ${escapeHtml(idea.offerDraft.title)} — ${escapeHtml(idea.offerDraft.description)}</p>
+                    <ul>${idea.offerDraft.deliverables.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ul>
+                    <p><strong>Monatliche Modellrechnung:</strong> ${formatMoney(projection.revenue, businessCase.currency)} Umsatz − ${formatMoney(projection.variableCosts, businessCase.currency)} variable Kosten − ${formatMoney(projection.fixedCosts, businessCase.currency)} Fixkosten = <strong>${formatMoney(projection.operatingResultBeforeTax, businessCase.currency)} vor Steuern</strong>.</p>
+                    <p><strong>Break-even-Annahme:</strong> ${projection.breakEvenMonthlySales === null ? 'Mit diesen Kostenannahmen nicht erreichbar.' : `${projection.breakEvenMonthlySales} Verkäufe/Monat.`}</p>
+                    <p>Nur eine Rechenhilfe auf Basis deiner Eingaben (Preis ${formatMoney(assumptions.unitPrice, businessCase.currency)}, ${assumptions.expectedMonthlySales} angenommene Verkäufe). Keine Marktprognose. Steuern, Zahlungsgebühren, Rückerstattungen und nicht eingetragene Kosten sind nicht berücksichtigt.</p>
+                    <p><strong>Verkäufe:</strong> <span data-sales-summary>${Number(summary.count)} manuell erfasst · ${formatMoney(summary.revenue || 0, summary.currency || businessCase.currency)}</span> (nicht vom Zahlungsanbieter verifiziert)</p>
+                    <form class="sales-form" data-sales-form>
+                        <label>Eingegangener Betrag (${escapeHtml(businessCase.currency)})
+                            <input name="amount" type="number" min="0.01" max="10000000" step="any" required>
+                        </label>
+                        <button type="submit">Manuell erfassen</button>
+                    </form>
+                    <button class="secondary" type="button" data-action="load-sales" data-item-id="${Number(entry.id)}">Umsatzliste laden</button>
+                    <div class="sales-list" aria-live="polite"></div>
+                    <p><strong>Verkaufswege:</strong> Manuelle Erfassung ist verfügbar; Stripe Connect ist gesperrt, bis Händlerkonten und Auszahlungen eingerichtet sind; Plattformverkauf ist gesperrt, bis Verkäuferrolle, Steuer-/Rechtsprüfung und Fulfillment eingerichtet sind.</p>
+                </section>` : `
+                <section class="business-case">
+                    <p>Dieser ältere Entwurf enthält noch keine Zielmarkt- und Umsatzannahmen. Erstelle einen neuen Entwurf, um die Kalkulation und Umsatzmessung zu verwenden.</p>
+                </section>`;
+            return `<article class="card idea" data-item-id="${Number(entry.id)}">
+                <h3>${escapeHtml(idea.title)}</h3>
+                <p>${escapeHtml(idea.summary)}</p>
+                <p><strong>Modell:</strong> ${escapeHtml(idea.businessModel)}</p>
+                <ul>${idea.firstSteps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ul>
+                ${businessCaseMarkup}
+                ${validationActionsMarkup}
+                <p>${escapeHtml(idea.executionPolicy)}</p>
+                ${businessCase ? `
+                    <section class="business-case social-drafts">
+                        <h4>Social-Media- und Werbeentwürfe</h4>
+                        <p>Erzeuge private Entwürfe aus dieser Idee. Nichts wird automatisch veröffentlicht; prüfe Inhalt, Rechte und Werbeaussagen vor jeder Nutzung.</p>
+                        <div class="social-platforms">
+                            <label><input class="social-platform" type="checkbox" value="instagram" checked> Instagram</label>
+                            <label><input class="social-platform" type="checkbox" value="facebook"> Facebook</label>
+                            <label><input class="social-platform" type="checkbox" value="tiktok"> TikTok</label>
+                            <label><input class="social-platform" type="checkbox" value="linkedin" checked> LinkedIn</label>
+                            <label><input class="social-platform" type="checkbox" value="x"> X</label>
+                        </div>
+                        <button class="secondary" type="button" data-action="generate-social-drafts" data-item-id="${Number(entry.id)}">Entwürfe generieren</button>
+                        <div class="notice" data-social-notice role="status" aria-live="polite"></div>
+                        <div class="social-drafts-list">${(entry.socialDrafts || []).map(draft => `
+                            <article class="card">
+                                <h5>${escapeHtml(draft.platformLabel)} · ${escapeHtml(draft.status === 'approved' ? 'Freigegeben, Veröffentlichung geplant' : 'Entwurf')}</h5>
+                                <p>${escapeHtml(draft.post)}</p>
+                                <p><strong>Werbe-Headline:</strong> ${escapeHtml(draft.adHeadline)}</p>
+                                <p><strong>Werbe-Copy:</strong> ${escapeHtml(draft.adCopy)}</p>
+                                <p><strong>Call-to-Action:</strong> ${escapeHtml(draft.callToAction)}</p>
+                                ${draft.status === 'approved'
+                                    ? `<p>Manuell freigegeben · geplant für ${escapeHtml(draft.scheduledAt)} · OAuth/Veröffentlichung nicht angebunden.</p>`
+                                    : `<label>Geplanter Zeitpunkt <input type="datetime-local" data-social-schedule></label>
+                                       <button class="secondary" type="button" data-action="approve-social-draft" data-item-id="${Number(entry.id)}" data-draft-id="${Number(draft.id)}">Freigeben &amp; Veröffentlichung planen</button>
+                                       <p>Freigabe ist nur eine Planung; ohne Nutzer-OAuth und Plattformintegration wird nichts veröffentlicht.</p>`}
+                                <button class="secondary" type="button" data-action="delete-social-draft" data-item-id="${Number(entry.id)}" data-draft-id="${Number(draft.id)}">Entwurf löschen</button>
+                            </article>`).join('') || '<p>Noch keine Social-Entwürfe.</p>'}</div>
+                    </section>` : ''}
+                ${businessCase ? `
+                    <section class="business-case market-data">
+                        <h4>Externe Marktindikatoren (optional)</h4>
+                        <p>Auf Anfrage werden ausschließlich Zielmarkt und Branche an den serverseitig konfigurierten Datenanbieter gesendet; keine Idee, E-Mail oder Zielgruppenangabe. Anbieter, Stichprobe und Aktualität vor Entscheidungen prüfen.</p>
+                        <label><input class="market-data-consent" type="checkbox"> Ich möchte Zielmarkt und Branche an den externen Datenanbieter übermitteln.</label>
+                        <button class="secondary" type="button" data-action="fetch-market-benchmarks" data-item-id="${Number(entry.id)}">Marktindikatoren abrufen</button>
+                        <div class="notice" data-market-notice role="status" aria-live="polite"></div>
+                        <div class="market-benchmarks-list">${(entry.marketBenchmarks || []).map(snapshot => `
+                            <article class="card">
+                                <h5>${escapeHtml(snapshot.source)} · Stand ${escapeHtml(snapshot.asOf)}</h5>
+                                <ul>${snapshot.metrics.map(metric => `<li>${escapeHtml(metric.name)}: ${escapeHtml(metric.value)} ${escapeHtml(metric.unit)}${metric.sampleSize ? ` · Stichprobe ${Number(metric.sampleSize)}` : ''}</li>`).join('')}</ul>
+                                <p>${escapeHtml(snapshot.disclaimer)} · <a href="${escapeHtml(snapshot.sourceUrl)}" rel="noopener noreferrer" target="_blank">Quelle</a></p>
+                            </article>`).join('') || '<p>Keine externen Marktdaten gespeichert.</p>'}</div>
+                    </section>` : ''}
+                <div class="entry-actions">
+                    <button class="secondary" type="button" data-action="edit" data-kind="ideas" data-item-id="${Number(entry.id)}">Bearbeiten</button>
+                    <button class="secondary" type="button" data-action="delete" data-kind="ideas" data-item-id="${Number(entry.id)}">Löschen</button>
+                </div>
+            </article>`;
+        }
+
+        function renderWorkflow(entry) {
+            const workflow = entry.workflow;
+            return `<article class="card workflow">
+                <h3>${escapeHtml(workflow.title)}</h3>
+                <p>${escapeHtml(workflow.summary)}</p>
+                <ol>${workflow.steps.map(step => `<li>${escapeHtml(step)}</li>`).join('')}</ol>
+                <p><strong>Erfolgskriterium:</strong> ${escapeHtml(workflow.successMetric)}</p>
+                <p><strong>Freigabegrenze:</strong> ${escapeHtml(workflow.approvalBoundary)}</p>
+                <div class="entry-actions">
+                    <button class="secondary" type="button" data-action="edit" data-kind="workflows" data-item-id="${Number(entry.id)}">Bearbeiten</button>
+                    <button class="secondary" type="button" data-action="delete" data-kind="workflows" data-item-id="${Number(entry.id)}">Löschen</button>
+                </div>
+            </article>`;
+        }
+
+        function createEditorField(labelText, name, value, maxLength, multiline = false) {
+            const label = document.createElement('label');
+            label.textContent = labelText;
+            const field = document.createElement(multiline ? 'textarea' : 'input');
+            field.name = name;
+            field.required = true;
+            field.maxLength = maxLength;
+            field.value = Array.isArray(value) ? value.join('\n') : value;
+            label.append(field);
+            return label;
+        }
+
+        function createEditor(kind, entry) {
+            const form = document.createElement('form');
+            form.className = 'card editor';
+            const value = kind === 'ideas' ? entry.idea : entry.workflow;
+            const fields = kind === 'ideas'
+                ? [
+                    ['Titel', 'title', value.title, 120, false],
+                    ['Zusammenfassung', 'summary', value.summary, 1200, true],
+                    ['Geschäftsmodell', 'businessModel', value.businessModel, 500, true],
+                    ['Erste Schritte (eine Zeile pro Schritt)', 'firstSteps', value.firstSteps, 300, true]
+                ]
+                : [
+                    ['Titel', 'title', value.title, 120, false],
+                    ['Zusammenfassung', 'summary', value.summary, 1200, true],
+                    ['Schritte (eine Zeile pro Schritt)', 'steps', value.steps, 300, true],
+                    ['Erfolgskriterium', 'successMetric', value.successMetric, 300, false],
+                    ['Freigabegrenze', 'approvalBoundary', value.approvalBoundary, 300, true]
+                ];
+            for (const [label, name, content, length, multiline] of fields) {
+                form.append(createEditorField(label, name, content, length, multiline));
+            }
+            const actions = document.createElement('div');
+            actions.className = 'entry-actions';
+            const save = document.createElement('button');
+            save.type = 'submit';
+            save.textContent = 'Änderungen speichern';
+            const cancel = document.createElement('button');
+            cancel.type = 'button';
+            cancel.className = 'secondary';
+            cancel.textContent = 'Abbrechen';
+            cancel.onclick = () => form.remove();
+            actions.append(save, cancel);
+            form.append(actions);
+            form.onsubmit = async event => {
+                event.preventDefault();
+                save.disabled = true;
+                const payload = Object.fromEntries(new FormData(form).entries());
+                const listField = kind === 'ideas' ? 'firstSteps' : 'steps';
+                payload[listField] = String(payload[listField]).split('\n').map(step => step.trim()).filter(Boolean);
+                try {
+                    const result = await api(`/api/${kind}/${entry.id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(payload)
+                    });
+                    const updated = { id: entry.id, [kind === 'ideas' ? 'idea' : 'workflow']: result[kind === 'ideas' ? 'idea' : 'workflow'] };
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = kind === 'ideas' ? renderIdea(updated) : renderWorkflow(updated);
+                    form.closest('article').replaceWith(wrapper.firstElementChild);
+                } catch (error) {
+                    const notice = document.createElement('p');
+                    notice.className = 'notice';
+                    notice.textContent = error.message;
+                    form.prepend(notice);
+                    save.disabled = false;
+                }
+            };
+            return form;
+        }
+
+        async function refreshSales(card, ideaId) {
+            const result = await api(`/api/ideas/${ideaId}/sales`);
+            const businessCase = cachedIdeas.find(item => item.id === ideaId)?.idea.commercialCase;
+            const currency = result.salesSummary.currency || businessCase?.currency;
+            card.querySelector('[data-sales-summary]').textContent =
+                `${result.salesSummary.count} manuell erfasst · ${formatMoney(result.salesSummary.revenue, currency)}`;
+            card.querySelector('.sales-list').innerHTML = result.sales.map(sale => `
+                <div class="sales-entry">
+                    <span>${formatMoney(sale.amount, sale.currency)} · ${new Date(sale.createdAt).toLocaleDateString()}</span>
+                    <button class="secondary" type="button" data-action="delete-sale" data-item-id="${ideaId}" data-sale-id="${sale.id}">Entfernen</button>
+                </div>
+            `).join('') || '<p>Noch keine manuellen Umsatzeinträge.</p>';
+        }
+
+        async function handleEntryAction(event, kind) {
+            const button = event.target.closest('button[data-action]');
+            if (!button) return;
+            const id = Number(button.dataset.itemId);
+            const card = button.closest('article');
+            if (!Number.isSafeInteger(id) || id < 1 || !card) return;
+            if (button.dataset.action === 'load-sales') {
+                button.disabled = true;
+                try {
+                    await refreshSales(card, id);
+                } catch (error) {
+                    card.querySelector('.sales-list').textContent = error.message;
+                } finally {
+                    button.disabled = false;
+                }
+                return;
+            }
+            if (button.dataset.action === 'delete-sale') {
+                const saleId = Number(button.dataset.saleId);
+                if (!Number.isSafeInteger(saleId) || saleId < 1
+                    || !confirm('Diesen manuellen Umsatzeintrag entfernen?')) return;
+                button.disabled = true;
+                try {
+                    await api(`/api/ideas/${id}/sales/${saleId}`, { method: 'DELETE' });
+                    await refreshSales(card, id);
+                } catch (error) {
+                    card.querySelector('.sales-list').textContent = error.message;
+                    button.disabled = false;
+                }
+                return;
+            }
+            if (button.dataset.action === 'generate-social-drafts') {
+                const entry = cachedIdeas.find(item => item.id === id);
+                const platforms = Array.from(card.querySelectorAll('.social-platform:checked'), input => input.value);
+                const notice = card.querySelector('[data-social-notice]');
+                if (!entry || platforms.length < 1 || platforms.length > 3) {
+                    notice.textContent = 'Wähle ein bis drei Plattformen aus.';
+                    return;
+                }
+                button.disabled = true;
+                notice.textContent = 'Entwürfe werden erstellt …';
+                try {
+                    const result = await api(`/api/ideas/${id}/social-drafts`, {
+                        method: 'POST',
+                        body: JSON.stringify({ platforms })
+                    });
+                    entry.socialDrafts = [...result.drafts, ...(entry.socialDrafts || [])];
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = renderIdea(entry);
+                    card.replaceWith(wrapper.firstElementChild);
+                } catch (error) {
+                    notice.textContent = error.message;
+                    button.disabled = false;
+                }
+                return;
+            }
+            if (button.dataset.action === 'approve-social-draft') {
+                const draftId = Number(button.dataset.draftId);
+                const entry = cachedIdeas.find(item => item.id === id);
+                const scheduleInput = card.querySelector(`[data-draft-id="${draftId}"][data-action="approve-social-draft"]`)
+                    ?.closest('.card')?.querySelector('[data-social-schedule]');
+                const notice = card.querySelector('[data-social-notice]');
+                const scheduledValue = scheduleInput?.value;
+                if (!entry || !Number.isSafeInteger(draftId) || draftId < 1 || !scheduledValue) {
+                    notice.textContent = 'Wähle einen geplanten Veröffentlichungszeitpunkt aus.';
+                    return;
+                }
+                button.disabled = true;
+                try {
+                    const result = await api(`/api/ideas/${id}/social-drafts/${draftId}/approve`, {
+                        method: 'POST',
+                        body: JSON.stringify({ scheduledAt: new Date(scheduledValue).toISOString() })
+                    });
+                    entry.socialDrafts = (entry.socialDrafts || []).map(draft =>
+                        draft.id === draftId ? result.draft : draft);
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = renderIdea(entry);
+                    card.replaceWith(wrapper.firstElementChild);
+                } catch (error) {
+                    notice.textContent = error.message;
+                    button.disabled = false;
+                }
+                return;
+            }
+            if (button.dataset.action === 'fetch-market-benchmarks') {
+                const entry = cachedIdeas.find(item => item.id === id);
+                const consent = card.querySelector('.market-data-consent');
+                const notice = card.querySelector('[data-market-notice]');
+                if (!entry || !consent?.checked) {
+                    notice.textContent = 'Bestätige zuerst ausdrücklich die Weitergabe von Zielmarkt und Branche.';
+                    return;
+                }
+                button.disabled = true;
+                notice.textContent = 'Externe Daten werden abgerufen …';
+                try {
+                    const result = await api(`/api/ideas/${id}/market-benchmarks`, {
+                        method: 'POST',
+                        body: JSON.stringify({ shareMarketContext: true })
+                    });
+                    entry.marketBenchmarks = [result.benchmark, ...(entry.marketBenchmarks || [])];
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = renderIdea(entry);
+                    card.replaceWith(wrapper.firstElementChild);
+                } catch (error) {
+                    notice.textContent = error.message;
+                    button.disabled = false;
+                }
+                return;
+            }
+            if (button.dataset.action === 'delete-social-draft') {
+                const draftId = Number(button.dataset.draftId);
+                const entry = cachedIdeas.find(item => item.id === id);
+                if (!entry || !Number.isSafeInteger(draftId) || draftId < 1) return;
+                button.disabled = true;
+                try {
+                    await api(`/api/ideas/${id}/social-drafts/${draftId}`, { method: 'DELETE' });
+                    entry.socialDrafts = (entry.socialDrafts || []).filter(draft => draft.id !== draftId);
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = renderIdea(entry);
+                    card.replaceWith(wrapper.firstElementChild);
+                } catch (error) {
+                    const notice = card.querySelector('[data-social-notice]');
+                    notice.textContent = error.message;
+                    button.disabled = false;
+                }
+                return;
+            }
+            if (button.dataset.action === 'edit') {
+                card.querySelector('.editor')?.remove();
+                const entries = kind === 'ideas' ? cachedIdeas : cachedWorkflows;
+                const entry = entries.find(item => item.id === id);
+                if (!entry) return;
+                card.append(createEditor(kind, entry));
+                return;
+            }
+            if (button.dataset.action !== 'delete' || !confirm('Diesen gespeicherten Entwurf endgültig löschen?')) return;
+            button.disabled = true;
+            try {
+                await api(`/api/${kind}/${id}`, { method: 'DELETE' });
+                card.remove();
+                if (kind === 'ideas') cachedIdeas = cachedIdeas.filter(item => item.id !== id);
+                else cachedWorkflows = cachedWorkflows.filter(item => item.id !== id);
+            } catch (error) {
+                const notice = document.createElement('p');
+                notice.className = 'notice';
+                notice.textContent = error.message;
+                card.append(notice);
+                button.disabled = false;
+            }
+        }
+
+        function formatPrice(product) {
+            return new Intl.NumberFormat('de-DE', { style: 'currency', currency: product.currency.toUpperCase() })
+                .format(product.unitAmountCents / 100);
+        }
+
+        async function renderBilling() {
+            const [catalog, access, usage, subscriptions, invoices] = await Promise.all([
+                api('/api/products'),
+                api('/api/billing/entitlements'),
+                api('/api/billing/usage'),
+                api('/api/billing/subscriptions'),
+                api('/api/billing/invoices')
+            ]);
+            const hasPremium = access.premiumEnabled;
+            $('#billing-status').textContent = hasPremium
+                ? 'Dein Premium-Zugang ist aktiv.'
+                : 'Wähle ein Angebot, um den Workflow-Vorlagengenerator freizuschalten.';
+            $('#entitlements').innerHTML = access.entitlements.map(item =>
+                `<p class="notice ok">Freigeschaltet: ${escapeHtml(item.name)}</p>`
+            ).join('');
+            $('#products').replaceChildren();
+            if (!catalog.products.length) {
+                $('#products').textContent = 'Derzeit sind keine Angebote verfügbar.';
+            } else if (hasPremium) {
+                $('#products').textContent = 'Deine Premium-Freischaltung ist aktiv.';
+            } else {
+                for (const product of catalog.products) {
+                    const row = document.createElement('div');
+                    row.className = 'product';
+                    const details = document.createElement('div');
+                    const title = document.createElement('strong');
+                    title.textContent = `${product.name} · ${formatPrice(product)}${product.recurringInterval ? ` / ${product.recurringInterval === 'year' ? 'Jahr' : 'Monat'}` : ''}`;
+                    const description = document.createElement('p');
+                    description.textContent = product.description;
+                    details.append(title, description);
+                    const button = document.createElement('button');
+                    button.textContent = product.recurringInterval ? 'Abo abschließen' : 'Jetzt kaufen';
+                    button.disabled = !catalog.checkoutReady;
+                    button.onclick = async () => {
+                        button.disabled = true;
+                        $('#billing-notice').textContent = '';
+                        try {
+                            const checkout = await api('/api/create-checkout-session', {
+                                method: 'POST',
+                                body: JSON.stringify({ productId: product.id })
+                            });
+                            location.assign(checkout.url);
+                        } catch (error) {
+                            $('#billing-notice').textContent = error.message;
+                            button.disabled = false;
+                        }
+                        $('#token-usage').textContent = `Frühere Modellnutzung diesen Monat: ${usage.usedTokens.toLocaleString('de-DE')} Tokens. Neue lokale Vorlagen verbrauchen keine Modell-Tokens.`;
+                        $('#subscriptions').innerHTML = subscriptions.subscriptions.map(item =>
+                            `<p class="invoice">Abo ${escapeHtml(item.productId)} · ${escapeHtml(item.status)}${item.currentPeriodEnd ? ` · Zeitraum bis ${new Date(item.currentPeriodEnd).toLocaleDateString('de-DE')}` : ''}</p>`
+                        ).join('');
+                        $('#billing-links').hidden = subscriptions.subscriptions.length === 0;
+                        $('#invoices').innerHTML = invoices.invoices.length ? invoices.invoices.map(item => {
+                            const amount = new Intl.NumberFormat('de-DE', { style: 'currency', currency: item.currency.toUpperCase() })
+                                .format(item.amountPaid / 100);
+                            const invoiceUrl = typeof item.hostedInvoiceUrl === 'string' && item.hostedInvoiceUrl.startsWith('https://')
+                                ? `<a href="${escapeHtml(item.hostedInvoiceUrl)}" rel="noopener noreferrer" target="_blank">Rechnung öffnen</a>` : '';
+                            const pdfUrl = typeof item.invoicePdf === 'string' && item.invoicePdf.startsWith('https://')
+                                ? `<a href="${escapeHtml(item.invoicePdf)}" rel="noopener noreferrer" target="_blank">PDF</a>` : '';
+                            return `<p class="invoice">Rechnung ${escapeHtml(item.number || item.id)} · ${escapeHtml(item.status)} · ${escapeHtml(amount)} ${invoiceUrl} ${pdfUrl}</p>`;
+                        }).join('') : '<p>Noch keine Rechnungen verfügbar.</p>';
+                        $('#billing-portal').onclick = async () => {
+                            try {
+                                const billing = await api('/api/billing/portal-session', { method: 'POST' });
+                                const url = new URL(billing.url);
+                                if (url.protocol !== 'https:' || url.hostname !== 'billing.stripe.com') {
+                                    throw new Error('Stripe hat eine ungültige Billing-Portal-Adresse zurückgegeben.');
+                                }
+                                location.assign(url.href);
+                            } catch (error) {
+                                $('#billing-notice').textContent = error.message;
+                            }
+                        };
+                    };
+                    row.append(details, button);
+                    $('#products').append(row);
+                }
+                if (!catalog.checkoutReady) {
+                    $('#billing-notice').textContent = 'Der Checkout ist derzeit noch nicht verfügbar.';
+                }
+            }
+            $('#workflow-form').hidden = !hasPremium;
+            $('#workflow-access').textContent = hasPremium
+                ? 'Dein Premium-Zugang ermöglicht personalisierte Workflow-Entwürfe.'
+                : 'Nach einem erfolgreichen Kauf wird der Generator automatisch freigeschaltet.';
+            return hasPremium;
+        }
+
+        let cachedIdeas = [];
+        let cachedWorkflows = [];
+
+        async function renderDashboard() {
+            $('#home').hidden = true;
+            $('#auth').hidden = true;
+            $('#dashboard').hidden = false;
+            const user = await api('/api/auth/me');
+            $('#welcome').textContent = `Angemeldet als ${user.user.email}`;
+            nav.replaceChildren();
+            const logout = document.createElement('button');
+            logout.className = 'secondary';
+            logout.textContent = 'Abmelden';
+            logout.onclick = async () => {
+                await api('/api/auth/logout', { method: 'POST' });
+                location.assign('/');
+            };
+            nav.append(logout);
+            const result = await api('/api/ideas');
+            cachedIdeas = result.ideas;
+            $('#ideas').innerHTML = result.ideas.map(renderIdea).join('');
+            const workflowResult = await api('/api/workflows');
+            cachedWorkflows = workflowResult.workflows;
+            $('#workflows-list').innerHTML = workflowResult.workflows.map(renderWorkflow).join('');
+            $('#ideas').addEventListener('click', event => { void handleEntryAction(event, 'ideas'); });
+            $('#ideas').addEventListener('submit', async event => {
+                const actionForm = event.target.closest('form[data-validation-action]');
+                if (actionForm) {
+                    event.preventDefault();
+                    const card = actionForm.closest('article.idea');
+                    const entry = cachedIdeas.find(item => item.id === Number(card?.dataset.itemId));
+                    const actionId = Number(actionForm.dataset.actionId);
+                    const button = actionForm.querySelector('button[type="submit"]');
+                    if (!entry || !button) return;
+                    button.disabled = true;
+                    try {
+                        const values = Object.fromEntries(new FormData(actionForm).entries());
+                        const result = await api(`/api/ideas/${entry.id}/actions/${actionId}`, {
+                            method: 'PATCH',
+                            body: JSON.stringify({
+                                status: values.status,
+                                dueDate: values.dueDate || null,
+                                resultNote: values.resultNote,
+                            })
+                        });
+                        entry.validationActions = (entry.validationActions || []).map(action =>
+                            action.id === actionId ? result.action : action);
+                        const wrapper = document.createElement('div');
+                        wrapper.innerHTML = renderIdea(entry);
+                        card.replaceWith(wrapper.firstElementChild);
+                    } catch (error) {
+                        const notice = document.createElement('p');
+                        notice.className = 'notice';
+                        notice.setAttribute('role', 'alert');
+                        notice.textContent = error.message;
+                        actionForm.prepend(notice);
+                        button.disabled = false;
+                    }
+                    return;
+                }
+                const form = event.target.closest('form[data-sales-form]');
+                if (!form) return;
+                event.preventDefault();
+                const card = form.closest('article');
+                const entry = cachedIdeas.find(item => item.id === Number(card?.querySelector('[data-action="load-sales"]')?.dataset.itemId));
+                const button = form.querySelector('button[type="submit"]');
+                if (!entry || !button) return;
+                button.disabled = true;
+                try {
+                    await api(`/api/ideas/${entry.id}/sales`, {
+                        method: 'POST',
+                        body: JSON.stringify({ amount: Number(new FormData(form).get('amount')) })
+                    });
+                    form.reset();
+                    await refreshSales(card, entry.id);
+                } catch (error) {
+                    card.querySelector('.sales-list').textContent = error.message;
+                } finally {
+                    button.disabled = false;
+                }
+            });
+            $('#workflows-list').addEventListener('click', event => { void handleEntryAction(event, 'workflows'); });
+            await renderBilling();
+            $('#account-export').onclick = async () => {
+                try {
+                    const exported = await api('/api/account/export');
+                    const blobUrl = URL.createObjectURL(new Blob([JSON.stringify(exported, null, 2)], { type: 'application/json' }));
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = 'natur-vitale-datenexport.json';
+                    link.click();
+                    URL.revokeObjectURL(blobUrl);
+                } catch (error) {
+                    $('#account-notice').textContent = error.message;
+                }
+            };
+            $('#logout-other-sessions').onclick = async () => {
+                try {
+                    const result = await api('/api/auth/logout-other-sessions', { method: 'POST' });
+                    $('#account-notice').textContent = `${result.revokedSessions} andere Sitzung(en) abgemeldet.`;
+                    $('#account-notice').className = 'notice ok';
+                } catch (error) {
+                    $('#account-notice').textContent = error.message;
+                    $('#account-notice').className = 'notice';
+                }
+            };
+            $('#change-password-form').onsubmit = async event => {
+                event.preventDefault();
+                try {
+                    const result = await api('/api/auth/change-password', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            currentPassword: $('#current-password').value,
+                            newPassword: $('#new-password').value
+                        })
+                    });
+                    $('#password-notice').textContent = result.message;
+                    $('#password-notice').className = 'notice ok';
+                    $('#change-password-form').reset();
+                } catch (error) {
+                    $('#password-notice').textContent = error.message;
+                    $('#password-notice').className = 'notice';
+                }
+            };
+            $('#account-delete-form').onsubmit = async event => {
+                event.preventDefault();
+                if (!confirm('Möchtest du dein Konto und alle zugehörigen Portal-Daten endgültig löschen?')) return;
+                try {
+                    await api('/api/account', {
+                        method: 'DELETE',
+                        body: JSON.stringify({ password: $('#delete-password').value })
+                    });
+                    location.assign('/');
+                } catch (error) {
+                    $('#account-notice').textContent = error.message;
+                }
+            };
+            $('#idea-form').onsubmit = async event => {
+                event.preventDefault();
+                const button = $('#idea-submit');
+                button.disabled = true;
+                $('#idea-notice').className = 'notice';
+                try {
+                    const created = await api('/api/ideas/generate', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            topic: $('#topic').value,
+                            audience: $('#audience').value,
+                            strengths: $('#strengths').value,
+                            marketCountry: $('#market-country').value,
+                            currency: $('#currency').value,
+                            unitPrice: Number($('#unit-price').value),
+                            expectedMonthlySales: Number($('#expected-monthly-sales').value),
+                            variableCostPerSale: Number($('#variable-cost').value),
+                            monthlyFixedCosts: Number($('#monthly-fixed-costs').value),
+                        })
+                    });
+                    $('#ideas').insertAdjacentHTML('afterbegin', renderIdea(created.idea));
+                    cachedIdeas.unshift(created.idea);
+                    $('#idea-notice').textContent = 'Entwurf gespeichert.';
+                    $('#idea-notice').className = 'notice ok';
+                } catch (error) {
+                    $('#idea-notice').textContent = error.message;
+                } finally {
+                    button.disabled = false;
+                }
+            };
+            $('#workflow-form').onsubmit = async event => {
+                event.preventDefault();
+                const button = $('#workflow-submit');
+                button.disabled = true;
+                $('#workflow-notice').className = 'notice';
+                try {
+                    const created = await api('/api/workflows/generate', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            goal: $('#workflow-goal').value,
+                            audience: $('#workflow-audience').value,
+                            constraints: $('#workflow-constraints').value
+                        })
+                    });
+                    $('#workflows-list').insertAdjacentHTML('afterbegin', renderWorkflow(created.workflow));
+                    cachedWorkflows.unshift(created.workflow);
+                    $('#workflow-notice').textContent = 'Workflow gespeichert.';
+                    $('#workflow-notice').className = 'notice ok';
+                } catch (error) {
+                    $('#workflow-notice').textContent = error.message;
+                } finally {
+                    button.disabled = false;
+                }
+            };
+            await handleCheckoutReturn();
+        }
+
+        async function handleCheckoutReturn() {
+            const params = new URLSearchParams(location.search);
+            if (params.get('checkout') === 'cancelled') {
+                $('#billing-notice').textContent = 'Der Kauf wurde abgebrochen.';
+            }
+            if (params.get('checkout') !== 'success') return;
+            const sessionId = params.get('session_id');
+            if (!sessionId) {
+                $('#billing-notice').textContent = 'Die Checkout-Bestätigung fehlt. Prüfe deinen Zugang in Kürze erneut.';
+                return;
+            }
+            $('#billing-notice').textContent = 'Zahlung wird bestätigt und dein Zugang freigeschaltet …';
+            try {
+                for (let attempt = 0; attempt < 20; attempt += 1) {
+                    const status = await api(`/api/billing/checkout-status?session_id=${encodeURIComponent(sessionId)}`);
+                    if (status.fulfilled) {
+                        await renderBilling();
+                        $('#billing-notice').textContent = 'Zahlung bestätigt. Deine Premium-Funktionen sind jetzt freigeschaltet.';
+                        $('#billing-notice').className = 'notice ok';
+                        history.replaceState(null, '', '/dashboard');
+                        return;
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                $('#billing-notice').textContent = 'Die Zahlung wird noch verarbeitet. Dein Zugang erscheint automatisch nach der Stripe-Bestätigung.';
+            } catch (error) {
+                $('#billing-notice').textContent = error.message;
+            }
+        }
+
+        async function start() {
+            const page = location.pathname;
+            if (page === '/dashboard') {
+                try {
+                    await renderDashboard();
+                } catch {
+                    location.replace('/login');
+                }
+            } else if (page === '/register') {
+                renderAuth('register');
+            } else if (page === '/login') {
+                renderAuth('login');
+            } else if (page === '/verify-email') {
+                renderAuth('verify');
+            } else if (page === '/reset-password') {
+                renderAuth('reset');
+            } else {
+                $('#auth').hidden = true;
+                $('#dashboard').hidden = true;
+                $('#home').hidden = false;
+                nav.replaceChildren(authLink('Anmelden', '/login', ''), authLink('Konto erstellen', '/register'));
+            }
+        }
+
+        start();
+    </script>
+</body>
+</html>

@@ -126,7 +126,7 @@ curl -fsS -u "$DASHBOARD_USERNAME:$DASHBOARD_PASSWORD" https://naturvitale.tech/
 
 ### Öffentliches Portal, E-Mail und Stripe Billing
 
-Das Portal verwendet `OPENAI_API_KEY` und optional `OPENAI_MODEL` für personalisierte Ideenentwürfe. Der Premium-Workflow-Generator wird erst nach bestätigter Stripe-Zahlung freigeschaltet. Die KI führt keine externen Aktionen aus. Ohne Schlüssel gibt die API einen sichtbaren Konfigurationsfehler zurück und wechselt nicht auf statische Vorlagen.
+Im lokalen Entwicklungsstand erzeugt das Portal Ideen-, Social- und Workflow-Entwürfe mit deterministischen Vorlagen in `portal/local-generation.cjs`, ohne Modellanbieter oder Modellschlüssel. Die Vorlagen sind keine KI-Analyse und müssen ergänzt und überprüft werden; der Premium-Workflow bleibt zugangsgeschützt. Der Stand ist noch nicht auf Hetzner ausgerollt: Dort sind die bisherigen Generatoren seit der Schlüsselabschaltung vorläufig nicht verfügbar. Die aktuelle Lösung isoliert den Container nicht vom Netzwerk und schützt nicht automatisch vor zukünftigen direkten Modellaufrufen. Brevo, Stripe und optionale Marktdaten können unabhängig davon Kosten verursachen.
 
 Registrierung und Passwort-Reset erfordern `BREVO_API_KEY`, `SENDER_EMAIL` (optional `SENDER_NAME`) sowie eine gültige `PUBLIC_BASE_URL`. Eine Testzustellung und der Klick auf Verifizierungs-/Reset-Links sind vor der Live-Schaltung zu prüfen. Tokens werden nur gehasht gespeichert und laufen ab. Ohne E-Mail-Konfiguration wird kein unbestätigter Account nutzbar.
 
@@ -153,7 +153,7 @@ Die signaturgeprüfte Portal-Webhook-Route speichert Events idempotent und aktua
 
 ### Limits, Datenschutz und Fehlerübersicht
 
-Die persistenten DB-Limits sind konfigurierbar: `PORTAL_API_RATE_LIMIT` (Standard 240 API-Anfragen pro IP und 15 Minuten), `PORTAL_LLM_RATE_LIMIT` (Standard 8 LLM-Anfragen je Nutzer und 15 Minuten; IP-Limit ist dreifach), Loginversuche werden zusätzlich je gehashter E-Mail begrenzt. Das Monatsbudget beträgt standardmäßig 50.000 Tokens im Basistarif (`PORTAL_MONTHLY_TOKEN_LIMIT`) und 200.000 im Premium-Tarif (`PORTAL_PREMIUM_MONTHLY_TOKEN_LIMIT`). Premium muss dafür aktiv freigeschaltet sein. Es läuft nur eine Portal-Instanz; für horizontale Skalierung ist ein verteilter Limiter erforderlich.
+Die persistenten DB-Limits sind konfigurierbar: `PORTAL_API_RATE_LIMIT` (Standard 240 API-Anfragen pro IP und 15 Minuten), `PORTAL_LLM_RATE_LIMIT` (Standard 8 Generierungsanfragen je Nutzer und 15 Minuten; IP-Limit ist dreifach), Loginversuche werden zusätzlich je gehashter E-Mail begrenzt. Lokale Vorlagen reservieren und verbrauchen keine Modell-Tokens; bestehende Nutzungsdaten und Limits bleiben für historische API-Antworten erhalten. Schreibvorgänge werden innerhalb der einzelnen Portal-Instanz serialisiert; für mehrere Instanzen ist ein anderes abgestimmtes Datenbank-/Limiter-Konzept erforderlich.
 
 Angemeldete Nutzer können `/api/account/export` für einen JSON-Export und `DELETE /api/account` zur endgültigen Kontolöschung verwenden. Vorhandene aktive Stripe-Abos werden zunächst gekündigt; wenn Stripe die Kündigung nicht bestätigt, wird die Kontolöschung abgebrochen. Aufbewahrungspflichten und Rechtsgrundlagen für Zahlungen, Rechnungen und Kontodaten müssen vor Produktivbetrieb rechtlich festgelegt werden.
 
@@ -237,7 +237,7 @@ This root dashboard records paid orders with `fulfillment_status=pending`. It do
 
 Compose startet das öffentliche Portal als eigenen `portal`-Dienst aus demselben Image wie das Agent-Dashboard. `/`, `/login`, `/register`, `/dashboard` und die Portal-API unter `/api/*` werden ohne Caddy Basic Auth an diesen Dienst weitergeleitet. Das Portal unterstützt E-Mail-/Passwort-Registrierung, Anmeldung und private, gespeicherte Geschäftsideen-Entwürfe. Passwörter werden mit individuellem Salt und scrypt gehasht; Sitzungen verwenden zufällige, gehashte Tokens in HTTP-only-Cookies. Portal-Konten, Sitzungen und Entwürfe liegen separat im persistenten `portal_data`-Volume.
 
-Angemeldete Nutzer können Ideen mit dem konfigurierten LLM erzeugen und privat speichern. Ein serverseitiger Stripe-Kauf schaltet den Workflow-Entwurfsgenerator frei; die Freischaltung erfolgt ausschließlich nach signaturgeprüfter, idempotenter Webhook-Verarbeitung und wird im Portal-Datenbankvolume gespeichert. Generierte Workflows bleiben manuelle Entwürfe und starten keine externen Aktionen. E-Mail-Verifizierung, Passwort-Wiederherstellung, Refund-/Aboverwaltung, Kontingentierung und nutzerbezogene KI-Kostenlimits fehlen weiterhin; Einnahmen werden nicht garantiert. Die Portal-Anmeldedaten sind unabhängig von den Caddy-Basic-Auth-Zugangsdaten. Das `portal_data`-Volume muss in die Datensicherungen aufgenommen werden.
+Im lokalen Entwicklungsstand können angemeldete Nutzer regelbasierte Ideen privat speichern. Ein serverseitiger Stripe-Kauf schaltet den Workflow-Entwurfsgenerator frei; die Freischaltung erfolgt ausschließlich nach signaturgeprüfter, idempotenter Webhook-Verarbeitung und wird im Portal-Datenbankvolume gespeichert. Generierte Workflows bleiben manuelle Entwürfe und starten keine externen Aktionen. E-Mail-Verifizierung, Passwort-Wiederherstellung und Refund-/Aboverwaltung sind implementiert; ihre produktive End-to-End-Abnahme bleibt erforderlich. Einnahmen werden nicht garantiert. Die Portal-Anmeldedaten sind unabhängig von den Caddy-Basic-Auth-Zugangsdaten. Das `portal_data`-Volume muss in die Datensicherungen aufgenommen werden.
 
 ### Agent-Dashboard und Runner im Compose-Betrieb
 
@@ -249,10 +249,14 @@ Im lokalen Modus akzeptiert das Dashboard nur diese ausführbaren Befehle:
 
 ```text
 /local status
+/local draft development -- Kontowiederherstellung verbessern
+/local draft marketing -- Geschäftsideen validieren
 /local list agent-input
 /local read agent-input/datei.txt
 /local write agent-output/bericht.txt -- Berichtstext
 ```
+
+Die beiden `draft`-Befehle liefern nach Auftragseingabe feste, regelbasierte Vorlagen für Entwicklungsplanung beziehungsweise Marketing. Sie rufen keinen Modellanbieter auf, erzeugen keinen Code, starten keine Tests und veröffentlichen oder verkaufen nichts. Die Ergebnisse werden wie andere Tasks in der Queue gespeichert; sie sind keine automatische, fortlaufende Agentenentwicklung.
 
 Eingaben für `/local read` müssen unter `data/agent-input`, `data/agent-output` oder `data/reports` liegen. Neue Dateien dürfen nur unter `data/agent-output` erstellt werden; Überschreiben, Pfadübertritte, versteckte Pfade, Symlinks, Shell-Befehle und Codeausführung werden blockiert. Dateioperationen sind größenbegrenzt. Diese Anwendungsgrenzen ersetzen keine Betriebssystem-Sandbox. Die Queue selbst ist eine native SQLite-Taskqueue und stellt keine KI-Textgenerierung bereit.
 
@@ -269,7 +273,7 @@ Für neue Volumes setzt die Beispielkonfiguration `AGENT_EXECUTION_MODE=local` u
 docker compose exec app npm run control -- approve-local
 ```
 
-Der Developer-Agent im Root-Dashboard reiht ausschließlich begrenzte lokale `/local`-Aufgaben in die persistente Task-Queue ein. Unterstützt werden `/local status`, `/local list`, `/local read` und `/local write` (nur neue Dateien unter `data/agent-output/`). Der Endpunkt ist nur bei `AGENT_EXECUTION_MODE=local` verfügbar und wird im modellbasierten Modus mit HTTP 503 abgelehnt, statt Befehle versehentlich als Modellprompt zu verarbeiten. Es gibt keine Codegenerierung, keine Quellcode-Mutationen und keine Shell-, Build-, Test- oder Git-Ausführung über diesen Endpunkt. Ollama wird für den Developer-Agenten nicht benötigt.
+Der Developer-Agent im Root-Dashboard reiht ausschließlich begrenzte lokale `/local`-Aufgaben in die persistente Task-Queue ein. Unterstützt werden `/local status`, `/local draft`, `/local list`, `/local read` und `/local write` (nur neue Dateien unter `data/agent-output/`). Der Endpunkt ist nur bei `AGENT_EXECUTION_MODE=local` verfügbar und wird im modellbasierten Modus mit HTTP 503 abgelehnt, statt Befehle versehentlich als Modellprompt zu verarbeiten. Es gibt keine Codegenerierung, keine Quellcode-Mutationen und keine Shell-, Build-, Test- oder Git-Ausführung über diesen Endpunkt. Ollama wird für den Developer-Agenten nicht benötigt.
 
 Patent 6 ist in `docs/invention-disclosures/principle-6-transactional-task-replay.md` als interner, nicht eingereichter Entwurf für transaktionale Task-Persistenz und Wiederanlauf dokumentiert. Es beschreibt keine Inferenz- oder Codegenerierungs-Engine. Die Anwendungsgrenzen des lokalen Executors sind keine Betriebssystem-Sandbox.
 

@@ -7,18 +7,38 @@ const MAX_BODY_BYTES = 32_768;
 const BUDGET_WARNING_CENTS = Number.parseInt(process.env.API_BUDGET_WARNING_CENTS || '1000', 10);
 const OPENAI_API_KEYS_URL = 'https://platform.openai.com/api-keys';
 
+class TaskApiRequestError extends Error {
+    constructor(readonly statusCode: number, message: string) {
+        super(message);
+    }
+}
+
 function sendJson(response: ServerResponse, status: number, body: unknown): void {
     response.writeHead(status, { 'content-type': 'application/json; charset=utf-8' });
     response.end(JSON.stringify(body));
 }
 
 async function readJson(request: IncomingMessage): Promise<Record<string, unknown>> {
-    let body = '';
+    const chunks: Buffer[] = [];
+    let byteLength = 0;
     for await (const chunk of request) {
-        body += chunk;
-        if (Buffer.byteLength(body) > MAX_BODY_BYTES) throw new Error('Anfrage ist zu groß.');
+        const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+        byteLength += bytes.byteLength;
+        if (byteLength > MAX_BODY_BYTES) {
+            throw new TaskApiRequestError(413, 'Anfrage ist zu groß.');
+        }
+        chunks.push(bytes);
     }
-    return JSON.parse(body || '{}') as Record<string, unknown>;
+    let input: unknown;
+    try {
+        input = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+    } catch {
+        throw new TaskApiRequestError(400, 'Anfrage enthält kein gültiges JSON.');
+    }
+    if (!input || typeof input !== 'object' || Array.isArray(input)) {
+        throw new TaskApiRequestError(400, 'Anfrage muss ein JSON-Objekt enthalten.');
+    }
+    return input as Record<string, unknown>;
 }
 
 function apiAlert(state: ControlState): { active: boolean; message: string; reason: string | null; nextCheckAt: string | null } {
@@ -59,7 +79,18 @@ export function startTaskApi(queue: TaskQueue, control: ControlPlane): Promise<R
                 const recentTasks = tasks
                     .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
                     .slice(0, 100);
-                sendJson(response, 200, { tasks: recentTasks, apiAlert: apiAlert(controlState) });
+                sendJson(response, 200, {
+                    tasks: recentTasks,
+                    executionMode: process.env.AGENT_EXECUTION_MODE === 'local' ? 'local-deterministic' : 'model-backed',
+                    apiAlert: apiAlert(controlState),
+                    control: {
+                        paused: controlState.paused,
+                        infrastructureReady: controlState.infrastructureReady,
+                        apiStatus: controlState.apiStatus,
+                        apiBudgetCents: controlState.apiBudgetCents,
+                        apiSpentCents: controlState.apiSpentCents,
+                    },
+                });
                 return;
             }
 
@@ -71,20 +102,65 @@ export function startTaskApi(queue: TaskQueue, control: ControlPlane): Promise<R
                     sendJson(response, 400, { error: 'Nachricht muss zwischen 1 und 4.000 Zeichen lang sein.' });
                     return;
                 }
+                const clientRequestId = input.clientRequestId === undefined
+                    ? crypto.randomUUID()
+                    : typeof input.clientRequestId === 'string'
+                        && /^[A-Za-z0-9._:-]{1,128}$/.test(input.clientRequestId)
+                        ? input.clientRequestId
+                        : null;
+                if (!clientRequestId) {
+                    sendJson(response, 400, { error: 'clientRequestId darf höchstens 128 sichere Zeichen enthalten.' });
+                    return;
+                }
+                const localExecution = process.env.AGENT_EXECUTION_MODE === 'local';
                 const task = await queue.enqueue({
-                    idempotencyKey: `chat:${input.clientRequestId || crypto.randomUUID()}`,
+                    idempotencyKey: `chat:${clientRequestId}`,
                     projectId: 'social-media-challenge',
                     role: 'master-orchestrator',
-                    type: 'user-command',
-                    payload: { message, targetAgent, source: 'mobile-dashboard' },
+                    type: localExecution ? 'local-execution' : 'user-command',
+                    payload: {
+                        message,
+                        targetAgent,
+                        source: 'mobile-dashboard',
+                        executionMode: localExecution ? 'local-deterministic' : 'model-backed',
+                    },
                 });
                 sendJson(response, 201, { task });
                 return;
             }
 
+            if (request.method === 'POST' && request.url === '/control') {
+                const input = await readJson(request);
+                if (input.action !== 'pause' && input.action !== 'resume') {
+                    sendJson(response, 400, { error: 'Aktion muss pause oder resume sein.' });
+                    return;
+                }
+                try {
+                    const state = await control.setPaused(input.action === 'pause');
+                    sendJson(response, 200, {
+                        control: {
+                            paused: state.paused,
+                            infrastructureReady: state.infrastructureReady,
+                            apiStatus: state.apiStatus,
+                            apiBudgetCents: state.apiBudgetCents,
+                            apiSpentCents: state.apiSpentCents,
+                        },
+                    });
+                } catch (error) {
+                    throw new TaskApiRequestError(409, error instanceof Error ? error.message : 'Runner-Steuerung nicht möglich.');
+                }
+                return;
+            }
+
             sendJson(response, 404, { error: 'Nicht gefunden.' });
         } catch (error) {
-            sendJson(response, 500, { error: error instanceof Error ? error.message : 'Interner Fehler.' });
+            const statusCode = error instanceof TaskApiRequestError ? error.statusCode : 500;
+            if (statusCode >= 500) {
+                console.error('[TaskAPI] Anfrage fehlgeschlagen:', error);
+            }
+            sendJson(response, statusCode, {
+                error: error instanceof Error ? error.message : 'Interner Fehler.',
+            });
         }
     });
 
